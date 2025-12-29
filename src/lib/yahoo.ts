@@ -32,22 +32,45 @@ export async function fetchMarketData(symbols: string[] = DEFAULT_SYMBOLS): Prom
     try {
         const results = await yahooFinance.quote(symbols) as any[];
 
-        return results.map((result: any) => ({
-            symbol: result.symbol,
-            name: result.shortName || result.longName || result.symbol,
-            price: result.regularMarketPrice || 0,
-            change: result.regularMarketChange || 0,
-            changePercent: result.regularMarketChangePercent || 0,
-            volume: result.regularMarketVolume || 0,
-            avgVolume: result.averageDailyVolume3Month || 0,
-            marketState: result.marketState === 'REGULAR' ? 'REGULAR' : 'CLOSED',
-            currency: result.currency || 'USD',
-            exchange: result.fullExchangeName || 'Unknown',
-            marketCap: result.marketCap,
-            trailingPE: result.trailingPE,
-            fiftyTwoWeekHigh: result.fiftyTwoWeekHigh,
-            fiftyTwoWeekLow: result.fiftyTwoWeekLow,
-        }));
+        return results.map((result: any) => {
+            const symbol = result.symbol;
+            let region = "US";
+            let assetType = "Stock";
+
+            if (symbol.endsWith('.TO')) region = "Canada";
+            else if (symbol.endsWith('.L')) region = "UK";
+            else if (symbol.includes('-USD')) {
+                region = "Global";
+                assetType = "Crypto";
+            } else if (symbol.startsWith('^')) {
+                region = "US";
+                assetType = "Index";
+            }
+
+            const etfs = ['VOO', 'SPY', 'QQQ', 'IVV', 'VTI', 'VEA', 'VWO'];
+            if (etfs.includes(symbol)) {
+                assetType = "ETF";
+            }
+
+            return {
+                symbol,
+                name: result.shortName || result.longName || symbol,
+                price: result.regularMarketPrice || 0,
+                change: result.regularMarketChange || 0,
+                changePercent: result.regularMarketChangePercent || 0,
+                volume: result.regularMarketVolume || 0,
+                avgVolume: result.averageDailyVolume3Month || 0,
+                marketState: result.marketState === 'REGULAR' ? 'REGULAR' : 'CLOSED',
+                currency: result.currency || 'USD',
+                exchange: result.fullExchangeName || 'Unknown',
+                marketCap: result.marketCap,
+                trailingPE: result.trailingPE,
+                fiftyTwoWeekHigh: result.fiftyTwoWeekHigh,
+                fiftyTwoWeekLow: result.fiftyTwoWeekLow,
+                region,
+                assetType,
+            };
+        });
     } catch (error) {
         console.error('Error fetching market data:', error);
         // Return empty array in case of failure to allow UI to handle empty state gracefully

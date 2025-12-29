@@ -22,36 +22,7 @@ export function Dashboard() {
       if (!res.ok) throw new Error('API fetch failed')
 
       const json = await res.json() as MarketAnalysis[]
-
-      // Enhance data with inferred metadata (Region, AssetType)
-      const enhancedData = json.map(item => {
-        let region = "US"
-        let assetType = "Stock"
-
-        if (item.symbol.endsWith('.TO')) region = "Canada"
-        else if (item.symbol.endsWith('.L')) region = "UK"
-        else if (item.symbol.includes('-USD')) {
-          region = "Global"
-          assetType = "Crypto"
-        } else if (item.symbol.startsWith('^')) {
-          region = "US"
-          assetType = "Index"
-        }
-
-        // Simple heuristic for ETFs
-        const etfs = ['VOO', 'SPY', 'QQQ', 'IVV', 'VTI', 'VEA', 'VWO']
-        if (etfs.includes(item.symbol)) {
-          assetType = "ETF"
-        }
-
-        return {
-          ...item,
-          region,
-          assetType
-        }
-      })
-
-      setMarketData(enhancedData)
+      setMarketData(json)
     } catch (err) {
       console.error(err)
       setError('Market data currently unavailable. Please check back later.')

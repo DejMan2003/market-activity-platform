@@ -27,3 +27,21 @@ export interface MarketAnalysis extends MarketQuote {
     riskReason?: string; // e.g., "Volume spike detected"
     trendDirection: 'UP' | 'DOWN' | 'FLAT';
 }
+
+export interface NewsItem {
+    uuid: string;
+    title: string;
+    publisher: string;
+    link: string;
+    providerPublishTime: string;
+    type: string;
+    thumbnail?: {
+        resolutions: Array<{
+            url: string;
+            width: number;
+            height: number;
+            tag: string;
+        }>;
+    };
+    relatedTickers?: string[];
+}

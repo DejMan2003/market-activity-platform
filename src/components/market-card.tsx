@@ -1,8 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { RiskBadge } from "./risk-badge"
 import { VolumeIndicator } from "./volume-indicator"
+import { NewsModal } from "./news-modal"
 import { TrendingUp, TrendingDown, ArrowRight } from "lucide-react"
 import { MarketAnalysis } from "@/types/market"
 
@@ -11,6 +13,7 @@ interface MarketCardProps {
 }
 
 export function MarketCard({ quote }: MarketCardProps) {
+  const [isNewsOpen, setIsNewsOpen] = useState(false)
   const isPositive = quote.changePercent > 0
   const trendColor = isPositive ? "text-primary font-bold shadow-sm" : "text-destructive font-bold shadow-sm"
 
@@ -23,109 +26,121 @@ export function MarketCard({ quote }: MarketCardProps) {
   }
 
   return (
-    <Card className="group relative overflow-hidden border-border/50 bg-card/60 backdrop-blur-md p-6 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5">
-      {/* Decorative corner elements */}
-      <div className="pointer-events-none absolute -right-8 -top-8 h-16 w-16 rotate-45 border border-primary/10 transition-all group-hover:border-primary/30" />
-      <div className="pointer-events-none absolute -bottom-8 -left-8 h-16 w-16 -rotate-12 border border-accent/10 transition-all group-hover:border-accent/30" />
+    <>
+      <Card className="group relative overflow-hidden border-border/50 bg-card/60 backdrop-blur-md p-6 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5">
+        {/* Decorative corner elements */}
+        <div className="pointer-events-none absolute -right-8 -top-8 h-16 w-16 rotate-45 border border-primary/10 transition-all group-hover:border-primary/30" />
+        <div className="pointer-events-none absolute -bottom-8 -left-8 h-16 w-16 -rotate-12 border border-accent/10 transition-all group-hover:border-accent/30" />
 
-      <div className="relative">
-        {/* Header */}
-        <div className="mb-4 flex items-start justify-between">
-          <div>
-            <div className="mb-1 flex items-center gap-2">
-              <h3 className="text-2xl font-black tracking-tight text-foreground uppercase">{quote.symbol}</h3>
-              <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground tracking-widest uppercase">
-                {quote.assetType || 'Stock'}
+        <div className="relative">
+          {/* Header */}
+          <div className="mb-4 flex items-start justify-between">
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <h3 className="text-2xl font-black tracking-tight text-foreground uppercase">{quote.symbol}</h3>
+                <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground tracking-widest uppercase">
+                  {quote.assetType || 'Stock'}
+                </span>
+              </div>
+              <p className="text-xs font-medium text-muted-foreground line-clamp-1 opacity-80">{quote.name}</p>
+            </div>
+            <RiskBadge volume={quote.volume} assetType={quote.assetType} riskLevel={quote.riskLevel} />
+          </div>
+
+          {/* Price Section */}
+          <div className="mb-6 p-3 rounded-lg bg-background/40 border border-border/20">
+            <div className="mb-1 flex items-baseline gap-2">
+              <span className="text-3xl font-black text-foreground">
+                {quote.currency === 'GBP' ? '£' : '$'}
+                {quote.price.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
-            <p className="text-xs font-medium text-muted-foreground line-clamp-1 opacity-80">{quote.name}</p>
-          </div>
-          <RiskBadge volume={quote.volume} assetType={quote.assetType} riskLevel={quote.riskLevel} />
-        </div>
-
-        {/* Price Section */}
-        <div className="mb-6 p-3 rounded-lg bg-background/40 border border-border/20">
-          <div className="mb-1 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-foreground">
-              {quote.currency === 'GBP' ? '£' : '$'}
-              {quote.price.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-          <div className={`flex items-center gap-1 text-sm ${trendColor}`}>
-            {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-            <span className="tracking-tight">
-              {isPositive ? "+" : ""}
-              {quote.changePercent.toFixed(2)}%
-            </span>
-          </div>
-        </div>
-
-        {/* Market Details Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">Market Cap</span>
-            <span className="text-sm font-black text-foreground">{formatMarketCap(quote.marketCap)}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">P/E Ratio</span>
-            <span className="text-sm font-black text-foreground">{quote.trailingPE ? quote.trailingPE.toFixed(2) : "N/A"}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">52W High</span>
-            <span className="text-sm font-black text-emerald-500">{quote.fiftyTwoWeekHigh ? `${quote.currency === 'GBP' ? '£' : '$'}${quote.fiftyTwoWeekHigh.toFixed(2)}` : "N/A"}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">52W Low</span>
-            <span className="text-sm font-black text-destructive">{quote.fiftyTwoWeekLow ? `${quote.currency === 'GBP' ? '£' : '$'}${quote.fiftyTwoWeekLow.toFixed(2)}` : "N/A"}</span>
-          </div>
-        </div>
-
-        {/* Volume Indicator */}
-        <div className="mb-4">
-          <VolumeIndicator volume={quote.volume} />
-        </div>
-
-        {/* Activity Score */}
-        <div className="mt-4 flex items-center justify-between border-t border-border/30 pt-4">
-          <div>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Activity Score</p>
-            <div className="flex items-center gap-3">
-              <div className="flex gap-1.5">
-                {[...Array(10)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-2 w-2 rounded-full transition-all ${i < quote.score
-                      ? i < 3
-                        ? "bg-primary shadow-[0_0_8px_var(--color-primary)]"
-                        : i < 7
-                          ? "bg-accent shadow-[0_0_8px_var(--color-accent)]"
-                          : "bg-destructive shadow-[0_0_8px_var(--color-destructive)]"
-                      : "bg-muted/40"
-                      }`}
-                  />
-                ))}
-              </div>
-              <span className="text-sm font-black text-foreground">{quote.score}/10</span>
+            <div className={`flex items-center gap-1 text-sm ${trendColor}`}>
+              {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+              <span className="tracking-tight">
+                {isPositive ? "+" : ""}
+                {quote.changePercent.toFixed(2)}%
+              </span>
             </div>
           </div>
-        </div>
 
-        {/* Region & Footer */}
-        <div className="mt-5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="rounded bg-background px-2 py-1 text-[10px] font-black text-muted-foreground border border-border/50 uppercase">
-              {quote.region || 'Global'}
-            </span>
+          {/* Market Details Grid */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">Market Cap</span>
+              <span className="text-sm font-black text-foreground">{formatMarketCap(quote.marketCap)}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">P/E Ratio</span>
+              <span className="text-sm font-black text-foreground">{quote.trailingPE ? quote.trailingPE.toFixed(2) : "N/A"}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">52W High</span>
+              <span className="text-sm font-black text-emerald-500">{quote.fiftyTwoWeekHigh ? `${quote.currency === 'GBP' ? '£' : '$'}${quote.fiftyTwoWeekHigh.toFixed(2)}` : "N/A"}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">52W Low</span>
+              <span className="text-sm font-black text-destructive">{quote.fiftyTwoWeekLow ? `${quote.currency === 'GBP' ? '£' : '$'}${quote.fiftyTwoWeekLow.toFixed(2)}` : "N/A"}</span>
+            </div>
           </div>
-          <button className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 transition-all uppercase tracking-tighter">
-            More Analytics
-            <ArrowRight className="h-3 w-3" />
-          </button>
+
+          {/* Volume Indicator */}
+          <div className="mb-4">
+            <VolumeIndicator volume={quote.volume} />
+          </div>
+
+          {/* Activity Score */}
+          <div className="mt-4 flex items-center justify-between border-t border-border/30 pt-4">
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Activity Score</p>
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1.5">
+                  {[...Array(10)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-2 w-2 rounded-full transition-all ${i < quote.score
+                        ? i < 3
+                          ? "bg-primary shadow-[0_0_8px_var(--color-primary)]"
+                          : i < 7
+                            ? "bg-accent shadow-[0_0_8px_var(--color-accent)]"
+                            : "bg-destructive shadow-[0_0_8px_var(--color-destructive)]"
+                        : "bg-muted/40"
+                        }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm font-black text-foreground">{quote.score}/10</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Region & Footer */}
+          <div className="mt-5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="rounded bg-background px-2 py-1 text-[10px] font-black text-muted-foreground border border-border/50 uppercase">
+                {quote.region || 'Global'}
+              </span>
+            </div>
+            <button
+              onClick={() => setIsNewsOpen(true)}
+              className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 transition-all uppercase tracking-tighter"
+            >
+              More Analytics
+              <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+
+      <NewsModal
+        symbol={quote.symbol}
+        name={quote.name}
+        isOpen={isNewsOpen}
+        onClose={() => setIsNewsOpen(false)}
+      />
+    </>
   )
 }
