@@ -14,6 +14,12 @@ const DEFAULT_SYMBOLS = [
     'AMZN',  // Amazon
     'TSLA',  // Tesla
     'NVDA',  // Nvidia
+    'SHOP.TO', // Shopify (Canada)
+    'RY.TO',   // Royal Bank (Canada)
+    'TD.TO',   // TD Bank (Canada)
+    'HSBA.L',  // HSBC (UK)
+    'AZN.L',   // AstraZeneca (UK)
+    'BP.L',    // BP (UK)
     'BTC-USD', // Bitcoin
     'ETH-USD', // Ethereum
     'AMD',
@@ -37,6 +43,10 @@ export async function fetchMarketData(symbols: string[] = DEFAULT_SYMBOLS): Prom
             marketState: result.marketState === 'REGULAR' ? 'REGULAR' : 'CLOSED',
             currency: result.currency || 'USD',
             exchange: result.fullExchangeName || 'Unknown',
+            marketCap: result.marketCap,
+            trailingPE: result.trailingPE,
+            fiftyTwoWeekHigh: result.fiftyTwoWeekHigh,
+            fiftyTwoWeekLow: result.fiftyTwoWeekLow,
         }));
     } catch (error) {
         console.error('Error fetching market data:', error);

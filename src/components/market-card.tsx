@@ -14,6 +14,14 @@ export function MarketCard({ quote }: MarketCardProps) {
   const isPositive = quote.changePercent > 0
   const trendColor = isPositive ? "text-primary font-bold shadow-sm" : "text-destructive font-bold shadow-sm"
 
+  const formatMarketCap = (cap?: number) => {
+    if (!cap) return "N/A"
+    if (cap >= 1e12) return `${(cap / 1e12).toFixed(2)}T`
+    if (cap >= 1e9) return `${(cap / 1e9).toFixed(2)}B`
+    if (cap >= 1e6) return `${(cap / 1e6).toFixed(2)}M`
+    return cap.toLocaleString()
+  }
+
   return (
     <Card className="group relative overflow-hidden border-border/50 bg-card/60 backdrop-blur-md p-6 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5">
       {/* Decorative corner elements */}
@@ -39,7 +47,8 @@ export function MarketCard({ quote }: MarketCardProps) {
         <div className="mb-6 p-3 rounded-lg bg-background/40 border border-border/20">
           <div className="mb-1 flex items-baseline gap-2">
             <span className="text-3xl font-black text-foreground">
-              ${quote.price.toLocaleString(undefined, {
+              {quote.currency === 'GBP' ? '£' : '$'}
+              {quote.price.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
@@ -51,6 +60,26 @@ export function MarketCard({ quote }: MarketCardProps) {
               {isPositive ? "+" : ""}
               {quote.changePercent.toFixed(2)}%
             </span>
+          </div>
+        </div>
+
+        {/* Market Details Grid */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">Market Cap</span>
+            <span className="text-sm font-black text-foreground">{formatMarketCap(quote.marketCap)}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">P/E Ratio</span>
+            <span className="text-sm font-black text-foreground">{quote.trailingPE ? quote.trailingPE.toFixed(2) : "N/A"}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">52W High</span>
+            <span className="text-sm font-black text-emerald-500">{quote.fiftyTwoWeekHigh ? `${quote.currency === 'GBP' ? '£' : '$'}${quote.fiftyTwoWeekHigh.toFixed(2)}` : "N/A"}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">52W Low</span>
+            <span className="text-sm font-black text-destructive">{quote.fiftyTwoWeekLow ? `${quote.currency === 'GBP' ? '£' : '$'}${quote.fiftyTwoWeekLow.toFixed(2)}` : "N/A"}</span>
           </div>
         </div>
 
@@ -92,7 +121,7 @@ export function MarketCard({ quote }: MarketCardProps) {
             </span>
           </div>
           <button className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 transition-all uppercase tracking-tighter">
-            Market Details
+            More Analytics
             <ArrowRight className="h-3 w-3" />
           </button>
         </div>

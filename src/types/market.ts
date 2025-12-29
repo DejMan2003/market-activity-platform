@@ -9,6 +9,11 @@ export interface MarketQuote {
     marketState: 'REGULAR' | 'CLOSED' | 'PRE' | 'POST';
     currency: string;
     exchange: string;
+    // Market Details
+    marketCap?: number;
+    trailingPE?: number;
+    fiftyTwoWeekHigh?: number;
+    fiftyTwoWeekLow?: number;
     // UI extensions
     region?: string;
     assetType?: string;

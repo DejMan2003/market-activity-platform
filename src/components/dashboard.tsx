@@ -33,10 +33,14 @@ export function Dashboard() {
         else if (item.symbol.includes('-USD')) {
           region = "Global"
           assetType = "Crypto"
+        } else if (item.symbol.startsWith('^')) {
+          region = "US"
+          assetType = "Index"
         }
 
         // Simple heuristic for ETFs
-        if (['VOO', 'SPY', 'QQQ', 'IVV', 'VTI'].includes(item.symbol)) {
+        const etfs = ['VOO', 'SPY', 'QQQ', 'IVV', 'VTI', 'VEA', 'VWO']
+        if (etfs.includes(item.symbol)) {
           assetType = "ETF"
         }
 
@@ -167,8 +171,8 @@ export function Dashboard() {
                 key={region}
                 onClick={() => setSelectedRegion(region)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all relative overflow-hidden ${selectedRegion === region
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card/50 text-foreground hover:bg-card border border-border"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card/50 text-foreground hover:bg-card border border-border"
                   }`}
               >
                 {selectedRegion === region && (
