@@ -2,21 +2,22 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { MarketCard } from "./market-card"
-import { TrendingUp, Activity, Globe, Zap, RefreshCw, AlertTriangle } from "lucide-react"
+import { TrendingUp, Activity, Globe, Zap, RefreshCw, AlertTriangle, GraduationCap } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { MarketAnalysis } from "@/types/market"
+import { TutorialOverlay } from "./tutorial-overlay"
 
 export function Dashboard() {
   const [marketData, setMarketData] = useState<MarketAnalysis[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<string>("All")
+  const [showTutorial, setShowTutorial] = useState(false)
 
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
-      // Call the API route
       const res = await fetch('/api/market', { cache: 'no-store' })
 
       if (!res.ok) throw new Error('API fetch failed')
@@ -31,9 +32,17 @@ export function Dashboard() {
     }
   }
 
+  const checkTutorial = () => {
+    const hasSeenTutorial = localStorage.getItem("market-sense-tutorial-skip")
+    if (!hasSeenTutorial) {
+      setShowTutorial(true)
+    }
+  }
+
   useEffect(() => {
     fetchData()
-    const interval = setInterval(fetchData, 60000) // Poll every minute
+    checkTutorial()
+    const interval = setInterval(fetchData, 60000)
     return () => clearInterval(interval)
   }, [])
 
@@ -41,7 +50,6 @@ export function Dashboard() {
     return selectedRegion === "All" ? marketData : marketData.filter((item) => item.region === selectedRegion)
   }, [marketData, selectedRegion])
 
-  // Aggregate regions from data
   const regions = useMemo(() => {
     const allRegions = new Set(marketData.map(m => m.region || 'Global'))
     return ["All", ...Array.from(allRegions).sort()]
@@ -73,14 +81,23 @@ export function Dashboard() {
             </p>
           </div>
 
-          <button
-            onClick={fetchData}
-            disabled={loading}
-            className="self-start md:self-center flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary bg-primary/10 border border-primary/20 rounded-lg hover:bg-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-            {loading ? 'Updating...' : 'Refresh Data'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowTutorial(true)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-black uppercase tracking-widest text-muted-foreground bg-secondary/10 border border-border/50 rounded-lg hover:bg-secondary/20 hover:text-foreground transition-all"
+            >
+              <GraduationCap size={16} />
+              Tutorial
+            </button>
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-black uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 rounded-lg hover:bg-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+              {loading ? 'Updating...' : 'Refresh'}
+            </button>
+          </div>
         </header>
 
         {/* Stats Cards */}
@@ -141,9 +158,9 @@ export function Dashboard() {
               <button
                 key={region}
                 onClick={() => setSelectedRegion(region)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all relative overflow-hidden ${selectedRegion === region
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card/50 text-foreground hover:bg-card border border-border"
+                className={`px-4 py-2 rounded-lg font-black uppercase tracking-widest text-[10px] transition-all relative overflow-hidden border ${selectedRegion === region
+                    ? "bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(var(--color-primary),0.3)]"
+                    : "bg-card/50 text-muted-foreground hover:bg-card border-border/50"
                   }`}
               >
                 {selectedRegion === region && (
@@ -167,7 +184,7 @@ export function Dashboard() {
         {loading && marketData.length === 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-              <Card key={i} className="h-64 animate-pulse bg-card/50" />
+              <Card key={i} className="h-64 animate-pulse bg-card/50 border-border/20" />
             ))}
           </div>
         ) : (
@@ -179,14 +196,18 @@ export function Dashboard() {
         )}
 
         {/* Educational Disclaimer */}
-        <Card className="mt-12 border-muted/40 bg-card/30 backdrop-blur-sm p-6">
-          <p className="text-sm text-muted-foreground text-center leading-relaxed">
-            <span className="font-semibold text-foreground">Educational Purpose Only:</span> Market Sense AI provides
+        <Card className="mt-12 border-muted/20 bg-card/30 backdrop-blur-sm p-6">
+          <p className="text-[10px] font-bold text-muted-foreground text-center leading-relaxed uppercase tracking-widest">
+            <span className="text-foreground">Educational Purpose Only:</span> Market Sense AI provides
             informational content for learning. This is not financial advice. Always conduct your own research and
             consult with financial professionals before making investment decisions.
           </p>
         </Card>
       </div>
+
+      {showTutorial && (
+        <TutorialOverlay onClose={() => setShowTutorial(false)} />
+      )}
     </div>
   )
 }
