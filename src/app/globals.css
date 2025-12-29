@@ -1,53 +1,59 @@
 @import "tailwindcss";
 
-@config "../../tailwind.config.ts";
-
 :root {
-  --background: 222 47% 4%;
-  --foreground: 213 31% 91%;
-  --card: 222 47% 4%;
-  --card-foreground: 213 31% 91%;
-  --popover: 222 47% 4%;
-  --popover-foreground: 213 31% 91%;
-  --primary: 142 70% 45%;
-  /* Emerald green for growth */
-  --primary-foreground: 210 40% 98%;
-  --secondary: 222 47% 11%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 222 47% 11%;
-  --muted-foreground: 215 20% 65%;
-  --accent: 217 91% 60%;
-  /* Indigo accent */
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 84% 60%;
-  /* Vibrant red for loss */
-  --destructive-foreground: 210 40% 98%;
-  --border: 217 33% 18%;
-  --input: 217 33% 18%;
-  --ring: 142 70% 45%;
+  --background: oklch(0.15 0.02 240);
+  --foreground: oklch(0.95 0.01 240);
+
+  --card: oklch(0.18 0.03 240);
+  --card-foreground: oklch(0.95 0.01 240);
+
+  --popover: oklch(0.18 0.03 240);
+  --popover-foreground: oklch(0.95 0.01 240);
+
+  --primary: oklch(0.7 0.2 145);
+  /* Standard Market Green */
+  --primary-foreground: oklch(0.15 0.02 240);
+
+  --secondary: oklch(0.25 0.04 240);
+  --secondary-foreground: oklch(0.95 0.01 240);
+
+  --muted: oklch(0.25 0.04 240);
+  --muted-foreground: oklch(0.7 0.02 240);
+
+  --accent: oklch(0.6 0.2 260);
+  /* Indigo/Blue Accent */
+  --accent-foreground: oklch(0.95 0.01 240);
+
+  --destructive: oklch(0.65 0.2 25);
+  /* Standard Market Red */
+  --destructive-foreground: oklch(0.95 0.01 240);
+
+  --border: oklch(0.3 0.04 240);
+  --input: oklch(0.3 0.04 240);
+  --ring: oklch(0.7 0.2 145);
   --radius: 0.75rem;
 }
 
 @theme {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }
 
 @layer base {
@@ -57,7 +63,6 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 

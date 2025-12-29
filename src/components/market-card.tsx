@@ -12,10 +12,10 @@ interface MarketCardProps {
 
 export function MarketCard({ quote }: MarketCardProps) {
   const isPositive = quote.changePercent > 0
-  const priceColor = isPositive ? "text-primary" : "text-destructive"
+  const trendColor = isPositive ? "text-primary font-bold shadow-sm" : "text-destructive font-bold shadow-sm"
 
   return (
-    <Card className="group relative overflow-hidden border-border/50 bg-card/70 backdrop-blur-sm p-6 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
+    <Card className="group relative overflow-hidden border-border/50 bg-card/60 backdrop-blur-md p-6 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5">
       {/* Decorative corner elements */}
       <div className="pointer-events-none absolute -right-8 -top-8 h-16 w-16 rotate-45 border border-primary/10 transition-all group-hover:border-primary/30" />
       <div className="pointer-events-none absolute -bottom-8 -left-8 h-16 w-16 -rotate-12 border border-accent/10 transition-all group-hover:border-accent/30" />
@@ -25,30 +25,29 @@ export function MarketCard({ quote }: MarketCardProps) {
         <div className="mb-4 flex items-start justify-between">
           <div>
             <div className="mb-1 flex items-center gap-2">
-              <h3 className="text-2xl font-bold tracking-tight">{quote.symbol}</h3>
-              <span className="rounded-md bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              <h3 className="text-2xl font-black tracking-tight text-foreground uppercase">{quote.symbol}</h3>
+              <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground tracking-widest uppercase">
                 {quote.assetType || 'Stock'}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground line-clamp-1">{quote.name}</p>
+            <p className="text-xs font-medium text-muted-foreground line-clamp-1 opacity-80">{quote.name}</p>
           </div>
           <RiskBadge volume={quote.volume} assetType={quote.assetType} riskLevel={quote.riskLevel} />
         </div>
 
-        {/* Price */}
-        <div className="mb-4">
-          <div className="mb-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold">
-              $
-              {quote.price.toLocaleString(undefined, {
+        {/* Price Section */}
+        <div className="mb-6 p-3 rounded-lg bg-background/40 border border-border/20">
+          <div className="mb-1 flex items-baseline gap-2">
+            <span className="text-3xl font-black text-foreground">
+              ${quote.price.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
             </span>
           </div>
-          <div className={`flex items-center gap-1 text-sm font-semibold ${priceColor}`}>
+          <div className={`flex items-center gap-1 text-sm ${trendColor}`}>
             {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-            <span>
+            <span className="tracking-tight">
               {isPositive ? "+" : ""}
               {quote.changePercent.toFixed(2)}%
             </span>
@@ -56,42 +55,46 @@ export function MarketCard({ quote }: MarketCardProps) {
         </div>
 
         {/* Volume Indicator */}
-        <VolumeIndicator volume={quote.volume} />
+        <div className="mb-4">
+          <VolumeIndicator volume={quote.volume} />
+        </div>
 
         {/* Activity Score */}
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-4 flex items-center justify-between border-t border-border/30 pt-4">
           <div>
-            <p className="text-xs text-muted-foreground mb-1">Activity Score</p>
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Activity Score</p>
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1.5">
                 {[...Array(10)].map((_, i) => (
                   <div
                     key={i}
-                    className={`h-1.5 w-1.5 rounded-full transition-all ${i < quote.score
-                        ? i < 3
-                          ? "bg-primary"
-                          : i < 7
-                            ? "bg-accent"
-                            : "bg-secondary"
-                        : "bg-muted"
+                    className={`h-2 w-2 rounded-full transition-all ${i < quote.score
+                      ? i < 3
+                        ? "bg-primary shadow-[0_0_8px_var(--color-primary)]"
+                        : i < 7
+                          ? "bg-accent shadow-[0_0_8px_var(--color-accent)]"
+                          : "bg-destructive shadow-[0_0_8px_var(--color-destructive)]"
+                      : "bg-muted/40"
                       }`}
                   />
                 ))}
               </div>
-              <span className="text-sm font-bold">{quote.score}/10</span>
+              <span className="text-sm font-black text-foreground">{quote.score}/10</span>
             </div>
           </div>
-          <button className="flex items-center gap-1 text-xs font-medium text-primary transition-all hover:gap-2">
-            Details
-            <ArrowRight className="h-3 w-3" />
-          </button>
         </div>
 
-        {/* Region Badge */}
-        <div className="mt-3 flex items-center gap-2">
-          <span className="rounded-md border border-border/50 bg-background/50 px-2 py-1 text-xs font-medium">
-            {quote.region || 'Global'}
-          </span>
+        {/* Region & Footer */}
+        <div className="mt-5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="rounded bg-background px-2 py-1 text-[10px] font-black text-muted-foreground border border-border/50 uppercase">
+              {quote.region || 'Global'}
+            </span>
+          </div>
+          <button className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 transition-all uppercase tracking-tighter">
+            Market Details
+            <ArrowRight className="h-3 w-3" />
+          </button>
         </div>
       </div>
     </Card>
