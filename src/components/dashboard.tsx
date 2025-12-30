@@ -107,9 +107,11 @@ export function Dashboard() {
             <div className="relative">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="h-4 w-4 text-primary" />
-                <p className="text-sm font-medium text-muted-foreground">Active Markets</p>
+                <p className="text-sm font-medium text-muted-foreground">Active Stocks</p>
               </div>
-              <p className="text-3xl font-bold text-primary">{marketData.length}</p>
+              <p className="text-3xl font-bold text-primary">
+                {marketData.filter(m => m.assetType === 'Stock').length}
+              </p>
             </div>
           </Card>
 
@@ -159,8 +161,8 @@ export function Dashboard() {
                 key={region}
                 onClick={() => setSelectedRegion(region)}
                 className={`px-4 py-2 rounded-lg font-black uppercase tracking-widest text-[10px] transition-all relative overflow-hidden border ${selectedRegion === region
-                    ? "bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(var(--color-primary),0.3)]"
-                    : "bg-card/50 text-muted-foreground hover:bg-card border-border/50"
+                  ? "bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(var(--color-primary),0.3)]"
+                  : "bg-card/50 text-muted-foreground hover:bg-card border-border/50"
                   }`}
               >
                 {selectedRegion === region && (

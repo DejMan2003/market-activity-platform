@@ -44,4 +44,8 @@ export interface NewsItem {
         }>;
     };
     relatedTickers?: string[];
+    // AI Analysis Fields
+    importance: 1 | 2 | 3 | 4 | 5; // 1 = Trivial, 5 = Critical
+    sentiment: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
+    aiInsight: string;
 }
