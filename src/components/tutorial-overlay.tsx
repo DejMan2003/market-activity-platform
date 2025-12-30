@@ -9,8 +9,8 @@ interface TutorialOverlayProps {
 
 const STEPS = [
     {
-        title: "Welcome to Market Sense",
-        description: "Your high-density dashboard for global market activity. Let's take a quick look at how to read the data.",
+        title: "Welcome to The Bazaar",
+        description: "Your digital exchange for high-density market intelligence. Let's take a quick look at how to navigate the stalls.",
         icon: GraduationCap,
         target: "header"
     },
@@ -60,7 +60,7 @@ export function TutorialOverlay({ onClose }: TutorialOverlayProps) {
 
     const handleComplete = () => {
         if (dontShowAgain) {
-            localStorage.setItem("market-sense-tutorial-skip", "true")
+            localStorage.setItem("bazaar-tutorial-skip", "true")
         }
         onClose()
     }

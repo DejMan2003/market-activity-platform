@@ -8,9 +8,9 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Market Sense AI - Educational Market Analytics",
+  title: "The Bazaar - Intelligent Market Analytics",
   description:
-    "Explore financial markets with AI-driven insights. Educational platform for stocks, ETFs, options, and crypto.",
+    "Explore global financial markets at The Bazaar. Intelligence-driven insights for stocks, ETFs, indices, and crypto.",
   generator: "v0.app",
   icons: {
     icon: [

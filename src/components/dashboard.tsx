@@ -33,7 +33,7 @@ export function Dashboard() {
   }
 
   const checkTutorial = () => {
-    const hasSeenTutorial = localStorage.getItem("market-sense-tutorial-skip")
+    const hasSeenTutorial = localStorage.getItem("bazaar-tutorial-skip")
     if (!hasSeenTutorial) {
       setShowTutorial(true)
     }
@@ -72,12 +72,12 @@ export function Dashboard() {
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/20 border border-primary/40">
                 <Activity className="h-6 w-6 text-primary" />
               </div>
-              <h1 className="text-4xl font-bold tracking-tight text-balance">
-                Market Sense <span className="text-primary">AI</span>
+              <h1 className="text-4xl font-black tracking-tighter text-balance uppercase">
+                The <span className="text-primary">Bazaar</span>
               </h1>
             </div>
-            <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
-              Educational market analytics powered by AI. Explore trends across stocks, ETFs, options, and crypto.
+            <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed italic font-medium">
+              Explore the global exchange of financial intelligence. Advanced analytics for stocks, indices, and crypto.
             </p>
           </div>
 
@@ -200,8 +200,8 @@ export function Dashboard() {
         {/* Educational Disclaimer */}
         <Card className="mt-12 border-muted/20 bg-card/30 backdrop-blur-sm p-6">
           <p className="text-[10px] font-bold text-muted-foreground text-center leading-relaxed uppercase tracking-widest">
-            <span className="text-foreground">Educational Purpose Only:</span> Market Sense AI provides
-            informational content for learning. This is not financial advice. Always conduct your own research and
+            <span className="text-foreground">Risk Disclosure:</span> The Bazaar provides
+            informational intelligence for analysis. This is not financial advice. Always conduct your own research and
             consult with financial professionals before making investment decisions.
           </p>
         </Card>

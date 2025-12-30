@@ -12,8 +12,8 @@ export default function Home() {
       <div className="relative z-10">
         <Dashboard />
 
-        <footer className="py-10 text-center text-sm text-slate-600 border-t border-white/5 mt-20">
-          <p>© {new Date().getFullYear()} Market Sense AI. Educational Use Only.</p>
+        <footer className="py-10 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-700 border-t border-white/5 mt-20">
+          <p>© {new Date().getFullYear()} The Bazaar. AI Intelligence Division.</p>
           <p className="mt-1">Not financial advice.</p>
         </footer>
       </div>
