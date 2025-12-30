@@ -34,11 +34,11 @@ export function NewsModal({ symbol, name, isOpen, onClose }: NewsModalProps) {
         }
     }
 
-    const getSentimentInfo = (sentiment: NewsItem['sentiment']) => {
+    const getSentimentInfo = (sentiment: string) => {
         switch (sentiment) {
             case 'BULLISH': return { color: 'text-primary', bg: 'bg-primary/20', icon: TrendingUp, label: 'Bullish' };
             case 'BEARISH': return { color: 'text-destructive', bg: 'bg-destructive/10', icon: TrendingDown, label: 'Bearish' };
-            default: return { color: 'text-muted-foreground', bg: 'bg-muted/10', icon: Minus, label: 'Neutral' };
+            default: return { color: 'text-muted-foreground', bg: 'bg-muted/10', icon: Minus, label: 'Meh' };
         }
     }
 
@@ -60,7 +60,7 @@ export function NewsModal({ symbol, name, isOpen, onClose }: NewsModalProps) {
                         </div>
                         <div>
                             <h2 className="text-xl font-black tracking-tight text-foreground uppercase">
-                                {symbol} Intelligence
+                                {symbol} News Analytics
                             </h2>
                             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                 AI-Analyzed News for {name}

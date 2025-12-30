@@ -6,13 +6,18 @@ import { TrendingUp, Activity, Globe, Zap, RefreshCw, AlertTriangle, GraduationC
 import { Card } from "@/components/ui/card"
 import { MarketAnalysis } from "@/types/market"
 import { TutorialOverlay } from "./tutorial-overlay"
+import { SearchBar } from "./search-bar"
 
 export function Dashboard() {
   const [marketData, setMarketData] = useState<MarketAnalysis[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<string>("All")
+  const [assetTypeFilter, setAssetTypeFilter] = useState<string>("All")
+  const [sortOption, setSortOption] = useState<string>("Most Active")
   const [showTutorial, setShowTutorial] = useState(false)
+  const [searchHistory, setSearchHistory] = useState<string[]>([])
+  const [searchedQuotes, setSearchedQuotes] = useState<MarketAnalysis[]>([])
 
   const fetchData = async () => {
     try {
@@ -32,10 +37,46 @@ export function Dashboard() {
     }
   }
 
+  const handleSearchSelect = async (symbol: string) => {
+    // Add to history
+    const newHistory = [symbol, ...searchHistory.filter(h => h !== symbol)].slice(0, 5)
+    setSearchHistory(newHistory)
+    sessionStorage.setItem("search-history", JSON.stringify(newHistory))
+
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/market?symbols=${symbol}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.length > 0) {
+          setSearchedQuotes(prev => {
+            const list = [data[0], ...prev.filter(q => q.symbol !== symbol)]
+            return list.slice(0, 3) // Keep last 3 searched items
+          })
+        }
+      }
+    } catch (err) {
+      console.error("Search fetch error:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const clearHistory = () => {
+    setSearchHistory([])
+    sessionStorage.removeItem("search-history")
+  }
+
   const checkTutorial = () => {
     const hasSeenTutorial = localStorage.getItem("bazaar-tutorial-skip")
     if (!hasSeenTutorial) {
       setShowTutorial(true)
+    }
+
+    // Load history
+    const savedHistory = sessionStorage.getItem("search-history")
+    if (savedHistory) {
+      setSearchHistory(JSON.parse(savedHistory))
     }
   }
 
@@ -47,12 +88,49 @@ export function Dashboard() {
   }, [])
 
   const filteredData = useMemo(() => {
-    return selectedRegion === "All" ? marketData : marketData.filter((item) => item.region === selectedRegion)
-  }, [marketData, selectedRegion])
+    let result = marketData
+
+    // Region Filter
+    if (selectedRegion !== "All") {
+      result = result.filter((item) => item.region === selectedRegion)
+    }
+
+    // Asset Type Filter
+    if (assetTypeFilter !== "All") {
+      result = result.filter((item) => item.assetType === assetTypeFilter)
+    }
+
+    // Sorting
+    result = [...result].sort((a, b) => {
+      switch (sortOption) {
+        case "Most Active":
+          return b.score - a.score
+        case "Least Active":
+          return a.score - b.score
+        case "Highest Price":
+          return b.price - a.price
+        case "Lowest Price":
+          return a.price - b.price
+        case "Top Gainers":
+          return b.changePercent - a.changePercent
+        case "Top Losers":
+          return a.changePercent - b.changePercent
+        default:
+          return 0
+      }
+    })
+
+    return result
+  }, [marketData, selectedRegion, assetTypeFilter, sortOption])
 
   const regions = useMemo(() => {
     const allRegions = new Set(marketData.map(m => m.region || 'Global'))
     return ["All", ...Array.from(allRegions).sort()]
+  }, [marketData])
+
+  const assetTypes = useMemo(() => {
+    const allTypes = new Set(marketData.map(m => m.assetType || 'Stock'))
+    return ["All", ...Array.from(allTypes).sort()]
   }, [marketData])
 
   return (
@@ -99,6 +177,32 @@ export function Dashboard() {
             </button>
           </div>
         </header>
+
+        {/* Search Bar */}
+        <div className="mb-12">
+          <SearchBar
+            onSelect={handleSearchSelect}
+            history={searchHistory}
+            onClearHistory={clearHistory}
+          />
+        </div>
+
+        {/* Search Results (Specific Section) */}
+        {searchedQuotes.length > 0 && (
+          <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-6 w-1 bg-primary rounded-full" />
+              <h2 className="text-xl font-black uppercase tracking-[0.2em] text-foreground">
+                Recent Trackers
+              </h2>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {searchedQuotes.map((quote) => (
+                <MarketCard key={quote.symbol} quote={quote} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4 mb-8">
@@ -153,24 +257,60 @@ export function Dashboard() {
           </Card>
         </div>
 
-        {/* Region Filter */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
-            {regions.map((region) => (
-              <button
-                key={region}
-                onClick={() => setSelectedRegion(region)}
-                className={`px-4 py-2 rounded-lg font-black uppercase tracking-widest text-[10px] transition-all relative overflow-hidden border ${selectedRegion === region
-                  ? "bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(var(--color-primary),0.3)]"
-                  : "bg-card/50 text-muted-foreground hover:bg-card border-border/50"
-                  }`}
-              >
-                {selectedRegion === region && (
-                  <div className="absolute inset-0 -rotate-45 border-r border-primary-foreground/20" />
-                )}
-                <span className="relative">{region}</span>
-              </button>
-            ))}
+        {/* Filters & Sorting */}
+        <div className="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-card/30 backdrop-blur-sm border border-white/5 p-4 rounded-xl">
+          <div className="space-y-4 flex-1">
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Geographic Focus</span>
+              <div className="flex flex-wrap gap-2">
+                {regions.map((region) => (
+                  <button
+                    key={region}
+                    onClick={() => setSelectedRegion(region)}
+                    className={`px-3 py-1.5 rounded-lg font-black uppercase tracking-widest text-[9px] transition-all relative overflow-hidden border ${selectedRegion === region
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card/50 text-muted-foreground hover:bg-card border-border/50"
+                      }`}
+                  >
+                    {region}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Asset Class</span>
+              <div className="flex flex-wrap gap-2">
+                {assetTypes.map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setAssetTypeFilter(type)}
+                    className={`px-3 py-1.5 rounded-lg font-black uppercase tracking-widest text-[9px] transition-all relative overflow-hidden border ${assetTypeFilter === type
+                      ? "bg-accent text-accent-foreground border-accent"
+                      : "bg-card/50 text-muted-foreground hover:bg-card border-border/50"
+                      }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 w-full lg:w-48">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Priority Sort</span>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="w-full bg-card/50 border border-border/50 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all appearance-none cursor-pointer"
+            >
+              <option>Most Active</option>
+              <option>Least Active</option>
+              <option>Highest Price</option>
+              <option>Lowest Price</option>
+              <option>Top Gainers</option>
+              <option>Top Losers</option>
+            </select>
           </div>
         </div>
 

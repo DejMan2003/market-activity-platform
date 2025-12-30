@@ -19,9 +19,15 @@ export interface MarketQuote {
     monthLow?: number;
     fiftyTwoWeekHigh?: number;
     fiftyTwoWeekLow?: number;
+    // Financial Metrics
+    dividendYield?: number;
+    eps?: number;
+    peRatio?: number;
+    beta?: number;
     // UI extensions
     region?: string;
     assetType?: string;
+    exchangeName?: string;
 }
 
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'VOLATILE';

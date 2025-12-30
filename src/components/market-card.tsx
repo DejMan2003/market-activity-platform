@@ -192,22 +192,55 @@ export function MarketCard({ quote }: MarketCardProps) {
                 <span className="text-xs font-black text-primary">{quote.score}/10</span>
               </div>
             </div>
-          </div>
-
-          {/* Region & Footer */}
-          <div className="mt-5 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-white/5 px-3 py-1 text-[9px] font-black text-muted-foreground border border-white/5 uppercase tracking-tighter">
-                {quote.region || 'Global'}
-              </span>
+            {/* Additional Metrics Grid */}
+            <div className="mt-4 grid grid-cols-2 gap-2 border-t border-white/5 pt-4">
+              {quote.peRatio !== undefined && (
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">P/E Ratio</span>
+                  <span className="text-[10px] font-bold text-foreground">{quote.peRatio.toFixed(2)}</span>
+                </div>
+              )}
+              {quote.eps !== undefined && (
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">EPS (TTM)</span>
+                  <span className="text-[10px] font-bold text-foreground">{quote.eps.toFixed(2)}</span>
+                </div>
+              )}
+              {quote.dividendYield !== undefined && (
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Div Yield</span>
+                  <span className="text-[10px] font-bold text-foreground">{(quote.dividendYield).toFixed(2)}%</span>
+                </div>
+              )}
+              {quote.beta !== undefined && (
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Beta (5Y)</span>
+                  <span className="text-[10px] font-bold text-foreground">{quote.beta.toFixed(2)}</span>
+                </div>
+              )}
+              {quote.exchangeName && (
+                <div className="flex flex-col col-span-2">
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Exchange</span>
+                  <span className="text-[10px] font-bold text-foreground/70 truncate">{quote.exchangeName}</span>
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => setIsNewsOpen(true)}
-              className="flex items-center gap-2 text-[10px] font-black text-primary hover:text-primary/80 transition-all uppercase tracking-[0.1em]"
-            >
-              Intelligence
-              <ArrowRight className="h-3 w-3" />
-            </button>
+
+            {/* Region & Footer */}
+            <div className="mt-5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-white/5 px-3 py-1 text-[9px] font-black text-muted-foreground border border-white/5 uppercase tracking-tighter">
+                  {quote.region || 'Global'}
+                </span>
+              </div>
+              <button
+                onClick={() => setIsNewsOpen(true)}
+                className="flex items-center gap-2 text-[10px] font-black text-primary hover:text-primary/80 transition-all uppercase tracking-[0.1em]"
+              >
+                News Analytics
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
           </div>
         </div>
       </Card>
