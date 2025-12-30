@@ -13,13 +13,13 @@ interface MarketCardProps {
   quote: MarketAnalysis
 }
 
-type ChartRange = '1d' | '5d' | '1y'
+type ChartRange = '1d' | '1mo' | '1y'
 
 export function MarketCard({ quote }: MarketCardProps) {
   const [isNewsOpen, setIsNewsOpen] = useState(false)
   const [charts, setCharts] = useState<Record<ChartRange, number[] | null>>({
     '1d': null,
-    '5d': null,
+    '1mo': null,
     '1y': null
   })
   const [loadingRange, setLoadingRange] = useState<ChartRange | null>(null)
@@ -56,30 +56,30 @@ export function MarketCard({ quote }: MarketCardProps) {
 
   return (
     <>
-      <Card className="group relative overflow-hidden border-border/50 bg-card/60 backdrop-blur-md p-6 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5">
-        {/* Decorative corner elements */}
-        <div className="pointer-events-none absolute -right-8 -top-8 h-16 w-16 rotate-45 border border-primary/10 transition-all group-hover:border-primary/30" />
-        <div className="pointer-events-none absolute -bottom-8 -left-8 h-16 w-16 -rotate-12 border border-accent/10 transition-all group-hover:border-accent/30" />
+      <Card className="group relative overflow-hidden border-border/50 bg-card/40 backdrop-blur-md p-6 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10">
+        {/* Decorative corner elements - Yellow themed */}
+        <div className="pointer-events-none absolute -right-8 -top-8 h-16 w-16 rotate-45 border border-primary/20 transition-all group-hover:border-primary/50" />
+        <div className="pointer-events-none absolute -bottom-8 -left-8 h-16 w-16 -rotate-12 border border-primary/10 transition-all group-hover:border-primary/30" />
 
         <div className="relative">
           {/* Header */}
           <div className="mb-4 flex items-start justify-between">
             <div className="relative">
               <div className="mb-1 flex items-center gap-2">
-                <h3 className="text-2xl font-black tracking-tight text-foreground uppercase">
+                <h3 className="text-2xl font-black tracking-tighter text-foreground uppercase border-b-2 border-primary/40 group-hover:border-primary transition-all">
                   {quote.symbol}
                 </h3>
-                <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground tracking-widest uppercase">
+                <span className="rounded bg-primary px-2 py-0.5 text-[9px] font-black text-primary-foreground tracking-widest uppercase shadow-[0_0_10px_rgba(var(--color-primary-rgb),0.3)]">
                   {quote.assetType || 'Stock'}
                 </span>
               </div>
-              <p className="text-xs font-medium text-muted-foreground line-clamp-1 opacity-80">{quote.name}</p>
+              <p className="text-[10px] font-bold text-muted-foreground line-clamp-1 opacity-70 uppercase tracking-tight">{quote.name}</p>
             </div>
             <RiskBadge volume={quote.volume} assetType={quote.assetType} riskLevel={quote.riskLevel} />
           </div>
 
           {/* Price Section */}
-          <div className="mb-6 p-4 rounded-xl bg-background/40 border border-border/20 shadow-inner">
+          <div className="mb-6 p-4 rounded-xl bg-black/40 border border-white/5 shadow-inner">
             <div className="mb-1 flex items-baseline gap-2">
               <span className="text-3xl font-black text-foreground tabular-nums">
                 {formatPrice(quote.price)}
@@ -94,20 +94,20 @@ export function MarketCard({ quote }: MarketCardProps) {
             </div>
           </div>
 
-          {/* Market Ranges Section - Redesigned for Hover Sparklines */}
+          {/* Market Ranges Section - Request: Monthly Explorer with Sparklines */}
           <div className="mb-6 space-y-3">
             {/* Daily Range */}
             <div
-              className="group/range relative p-3 rounded-lg bg-card/40 border border-border/10 hover:border-primary/40 transition-all cursor-crosshair overflow-visible"
+              className="group/range relative p-3 rounded-lg bg-white/5 border border-white/5 hover:border-primary/40 transition-all cursor-crosshair overflow-visible"
               onMouseEnter={() => fetchChart('1d')}
             >
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Daily Range</span>
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Intraday Tier</span>
                 {loadingRange === '1d' && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
               </div>
-              <div className="flex justify-between items-center group-hover/range:opacity-20 transition-opacity">
+              <div className="flex justify-between items-center group-hover/range:opacity-10 transition-opacity">
                 <span className="text-xs font-bold text-foreground">{formatPrice(quote.dayLow)}</span>
-                <div className="h-1 flex-1 mx-3 rounded-full bg-muted/30" />
+                <div className="h-1 flex-1 mx-3 rounded-full bg-white/10" />
                 <span className="text-xs font-bold text-foreground">{formatPrice(quote.dayHigh)}</span>
               </div>
               {/* Trend Overlay */}
@@ -116,38 +116,38 @@ export function MarketCard({ quote }: MarketCardProps) {
               </div>
             </div>
 
-            {/* Weekly Range */}
+            {/* Monthly Range */}
             <div
-              className="group/range relative p-3 rounded-lg bg-card/40 border border-border/10 hover:border-accent/40 transition-all cursor-crosshair overflow-visible"
-              onMouseEnter={() => fetchChart('5d')}
+              className="group/range relative p-3 rounded-lg bg-white/5 border border-white/5 hover:border-primary/40 transition-all cursor-crosshair overflow-visible"
+              onMouseEnter={() => fetchChart('1mo')}
             >
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Weekly Outlook</span>
-                {loadingRange === '5d' && <Loader2 className="h-3 w-3 animate-spin text-accent" />}
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Monthly Explorer</span>
+                {loadingRange === '1mo' && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
               </div>
               <div className="flex justify-between items-center group-hover/range:opacity-10 transition-opacity">
-                <span className="text-xs font-bold text-foreground/70 italic">5 Trading Days</span>
-                <div className="h-px flex-1 mx-3 bg-muted/20" />
-                <span className="text-xs font-bold text-foreground/70 italic">Historical Intel</span>
+                <span className="text-xs font-bold text-foreground/70 uppercase">30D Analysis</span>
+                <div className="h-px flex-1 mx-3 bg-white/5" />
+                <span className="text-xs font-bold text-foreground/70 uppercase">Market Flow</span>
               </div>
               {/* Trend Overlay */}
               <div className="absolute inset-0 flex items-center justify-center p-2 opacity-0 group-hover/range:opacity-100 transition-opacity pointer-events-none">
-                {charts['5d'] && <Sparkline data={charts['5d']} width={240} height={40} isPositive={isPositive} />}
+                {charts['1mo'] && <Sparkline data={charts['1mo']} width={240} height={40} isPositive={(charts['1mo'][charts['1mo'].length - 1] > charts['1mo'][0])} />}
               </div>
             </div>
 
             {/* Yearly Range */}
             <div
-              className="group/range relative p-3 rounded-lg bg-card/40 border border-border/10 hover:border-secondary/40 transition-all cursor-crosshair overflow-visible"
+              className="group/range relative p-3 rounded-lg bg-white/5 border border-white/5 hover:border-primary/40 transition-all cursor-crosshair overflow-visible"
               onMouseEnter={() => fetchChart('1y')}
             >
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">52-Week Tier</span>
-                {loadingRange === '1y' && <Loader2 className="h-3 w-3 animate-spin text-secondary" />}
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">52-Week Range</span>
+                {loadingRange === '1y' && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
               </div>
-              <div className="flex justify-between items-center group-hover/range:opacity-20 transition-opacity">
+              <div className="flex justify-between items-center group-hover/range:opacity-10 transition-opacity">
                 <span className="text-xs font-bold text-foreground/50">{formatPrice(quote.fiftyTwoWeekLow)}</span>
-                <div className="h-1 flex-1 mx-3 rounded-full bg-muted/10" />
+                <div className="h-1 flex-1 mx-3 rounded-full bg-white/5" />
                 <span className="text-xs font-bold text-foreground/50">{formatPrice(quote.fiftyTwoWeekHigh)}</span>
               </div>
               {/* Trend Overlay */}
@@ -159,11 +159,11 @@ export function MarketCard({ quote }: MarketCardProps) {
 
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">Market Cap</span>
+              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1 opacity-70">Market Cap</span>
               <span className="text-sm font-black text-foreground">{formatMarketCap(quote.marketCap)}</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">P/E Ratio</span>
+              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1 opacity-70">P/E Ratio</span>
               <span className="text-sm font-black text-foreground">{quote.trailingPE ? quote.trailingPE.toFixed(2) : "N/A"}</span>
             </div>
           </div>
@@ -173,27 +173,23 @@ export function MarketCard({ quote }: MarketCardProps) {
             <VolumeIndicator volume={quote.volume} />
           </div>
 
-          {/* Activity Score */}
-          <div className="mt-4 flex items-center justify-between border-t border-border/30 pt-4">
+          {/* Activity Score - Rebranded Score Dots */}
+          <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-4">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Activity Score</p>
+              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3">Activity Index</p>
               <div className="flex items-center gap-3">
-                <div className="flex gap-1.5">
+                <div className="flex gap-1">
                   {[...Array(10)].map((_, i) => (
                     <div
                       key={i}
-                      className={`h-2 w-2 rounded-full transition-all ${i < quote.score
-                        ? i < 3
-                          ? "bg-primary shadow-[0_0_8px_var(--color-primary)]"
-                          : i < 7
-                            ? "bg-accent shadow-[0_0_8px_var(--color-accent)]"
-                            : "bg-destructive shadow-[0_0_8px_var(--color-destructive)]"
-                        : "bg-muted/40"
+                      className={`h-2.5 w-1 rounded-sm transition-all duration-500 ${i < quote.score
+                        ? "bg-primary shadow-[0_0_12px_rgba(var(--color-primary-rgb),0.5)]"
+                        : "bg-white/5"
                         }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm font-black text-foreground">{quote.score}/10</span>
+                <span className="text-xs font-black text-primary">{quote.score}/10</span>
               </div>
             </div>
           </div>
@@ -201,15 +197,15 @@ export function MarketCard({ quote }: MarketCardProps) {
           {/* Region & Footer */}
           <div className="mt-5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="rounded bg-background px-2 py-1 text-[10px] font-black text-muted-foreground border border-border/50 uppercase">
+              <span className="rounded-full bg-white/5 px-3 py-1 text-[9px] font-black text-muted-foreground border border-white/5 uppercase tracking-tighter">
                 {quote.region || 'Global'}
               </span>
             </div>
             <button
               onClick={() => setIsNewsOpen(true)}
-              className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 transition-all uppercase tracking-tighter"
+              className="flex items-center gap-2 text-[10px] font-black text-primary hover:text-primary/80 transition-all uppercase tracking-[0.1em]"
             >
-              More Analytics
+              Intelligence
               <ArrowRight className="h-3 w-3" />
             </button>
           </div>

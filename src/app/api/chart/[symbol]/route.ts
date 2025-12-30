@@ -20,6 +20,10 @@ export async function GET(
         let interval: "15m" | "1h" | "1d" = "15m";
 
         switch (range) {
+            case '1mo':
+                period1 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                interval = "1h";
+                break;
             case '5d':
                 period1 = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
                 interval = "1h";

@@ -1,36 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: oklch(0.15 0.02 240);
-  --foreground: oklch(0.95 0.01 240);
+  --background: oklch(0.08 0.01 100);
+  --foreground: oklch(0.98 0.01 100);
 
-  --card: oklch(0.18 0.03 240);
-  --card-foreground: oklch(0.95 0.01 240);
+  --card: oklch(0.12 0.01 100);
+  --card-foreground: oklch(0.98 0.01 100);
 
-  --popover: oklch(0.18 0.03 240);
-  --popover-foreground: oklch(0.95 0.01 240);
+  --popover: oklch(0.12 0.01 100);
+  --popover-foreground: oklch(0.98 0.01 100);
 
-  --primary: oklch(0.7 0.2 145);
-  /* Standard Market Green */
-  --primary-foreground: oklch(0.15 0.02 240);
+  --primary: oklch(0.85 0.2 110);
+  --primary-foreground: oklch(0.08 0.01 100);
 
-  --secondary: oklch(0.25 0.04 240);
-  --secondary-foreground: oklch(0.95 0.01 240);
+  --secondary: oklch(0.2 0.01 100);
+  --secondary-foreground: oklch(0.98 0.01 100);
 
-  --muted: oklch(0.25 0.04 240);
-  --muted-foreground: oklch(0.7 0.02 240);
+  --muted: oklch(0.18 0.01 100);
+  --muted-foreground: oklch(0.6 0.01 100);
 
-  --accent: oklch(0.6 0.2 260);
-  /* Indigo/Blue Accent */
-  --accent-foreground: oklch(0.95 0.01 240);
+  --accent: oklch(0.85 0.2 110);
+  --accent-foreground: oklch(0.08 0.01 100);
 
   --destructive: oklch(0.65 0.2 25);
-  /* Standard Market Red */
   --destructive-foreground: oklch(0.95 0.01 240);
 
-  --border: oklch(0.3 0.04 240);
-  --input: oklch(0.3 0.04 240);
-  --ring: oklch(0.7 0.2 145);
+  --border: oklch(0.3 0.01 100);
+  --input: oklch(0.3 0.01 100);
+  --ring: oklch(0.85 0.2 110);
   --radius: 0.75rem;
 }
 

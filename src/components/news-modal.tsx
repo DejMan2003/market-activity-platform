@@ -36,7 +36,7 @@ export function NewsModal({ symbol, name, isOpen, onClose }: NewsModalProps) {
 
     const getSentimentInfo = (sentiment: NewsItem['sentiment']) => {
         switch (sentiment) {
-            case 'BULLISH': return { color: 'text-emerald-500', bg: 'bg-emerald-500/10', icon: TrendingUp, label: 'Bullish' };
+            case 'BULLISH': return { color: 'text-primary', bg: 'bg-primary/20', icon: TrendingUp, label: 'Bullish' };
             case 'BEARISH': return { color: 'text-destructive', bg: 'bg-destructive/10', icon: TrendingDown, label: 'Bearish' };
             default: return { color: 'text-muted-foreground', bg: 'bg-muted/10', icon: Minus, label: 'Neutral' };
         }
