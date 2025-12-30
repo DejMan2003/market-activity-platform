@@ -13,10 +13,16 @@ interface MarketCardProps {
   quote: MarketAnalysis
 }
 
+type ChartRange = '1d' | '5d' | '1y'
+
 export function MarketCard({ quote }: MarketCardProps) {
   const [isNewsOpen, setIsNewsOpen] = useState(false)
-  const [chartData, setChartData] = useState<number[] | null>(null)
-  const [loadingChart, setLoadingChart] = useState(false)
+  const [charts, setCharts] = useState<Record<ChartRange, number[] | null>>({
+    '1d': null,
+    '5d': null,
+    '1y': null
+  })
+  const [loadingRange, setLoadingRange] = useState<ChartRange | null>(null)
 
   const isPositive = quote.changePercent > 0
   const trendColor = isPositive ? "text-primary font-bold shadow-sm" : "text-destructive font-bold shadow-sm"
@@ -32,19 +38,19 @@ export function MarketCard({ quote }: MarketCardProps) {
 
   const formatPrice = (val?: number) => val ? `${currencySymbol}${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "N/A"
 
-  const fetchChart = async () => {
-    if (chartData || loadingChart) return
+  const fetchChart = async (range: ChartRange) => {
+    if (charts[range] || loadingRange) return
     try {
-      setLoadingChart(true)
-      const res = await fetch(`/api/chart/${quote.symbol}`)
+      setLoadingRange(range)
+      const res = await fetch(`/api/chart/${quote.symbol}?range=${range}`)
       if (res.ok) {
         const data = await res.json()
-        setChartData(data.prices)
+        setCharts(prev => ({ ...prev, [range]: data.prices }))
       }
     } catch (err) {
       console.error(err)
     } finally {
-      setLoadingChart(false)
+      setLoadingRange(null)
     }
   }
 
@@ -59,31 +65,10 @@ export function MarketCard({ quote }: MarketCardProps) {
           {/* Header */}
           <div className="mb-4 flex items-start justify-between">
             <div className="relative">
-              <div
-                className="mb-1 flex items-center gap-2 group/symbol cursor-pointer"
-                onMouseEnter={fetchChart}
-              >
-                <h3 className="text-2xl font-black tracking-tight text-foreground uppercase hover:text-primary transition-colors underline decoration-primary/20 underline-offset-4">
+              <div className="mb-1 flex items-center gap-2">
+                <h3 className="text-2xl font-black tracking-tight text-foreground uppercase">
                   {quote.symbol}
                 </h3>
-
-                {/* Sparkline Tooltip */}
-                <div className="pointer-events-none absolute left-0 top-full z-50 mt-2 w-48 scale-95 opacity-0 transition-all group-hover/symbol:scale-100 group-hover/symbol:opacity-100">
-                  <div className="rounded-xl border border-border/50 bg-background/95 p-4 shadow-2xl backdrop-blur-xl">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Daily Trend</span>
-                      {loadingChart && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
-                    </div>
-                    {chartData ? (
-                      <Sparkline data={chartData} width={160} height={60} isPositive={isPositive} />
-                    ) : !loadingChart && (
-                      <div className="flex h-[60px] items-center justify-center">
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Hover to Load</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
                 <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground tracking-widest uppercase">
                   {quote.assetType || 'Stock'}
                 </span>
@@ -109,48 +94,65 @@ export function MarketCard({ quote }: MarketCardProps) {
             </div>
           </div>
 
-          {/* Market Ranges Section - Request: Start from Daily and show others below */}
-          <div className="mb-6 space-y-4">
+          {/* Market Ranges Section - Redesigned for Hover Sparklines */}
+          <div className="mb-6 space-y-3">
             {/* Daily Range */}
-            <div className="p-3 rounded-lg bg-card/40 border border-border/10">
+            <div
+              className="group/range relative p-3 rounded-lg bg-card/40 border border-border/10 hover:border-primary/40 transition-all cursor-crosshair overflow-visible"
+              onMouseEnter={() => fetchChart('1d')}
+            >
               <div className="flex justify-between items-center mb-1">
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Daily Range</span>
-                <div className="flex gap-2 text-[10px] font-black uppercase">
-                  <span className="text-destructive">Low</span>
-                  <span className="text-emerald-500">High</span>
-                </div>
+                {loadingRange === '1d' && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-bold text-foreground">{formatPrice(quote.dayLow)}</span>
-                <div className="h-1 flex-1 mx-3 rounded-full bg-muted/30 relative">
-                  <div className="absolute top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary" style={{ left: '50%' }} />
-                </div>
-                <span className="text-sm font-bold text-foreground">{formatPrice(quote.dayHigh)}</span>
+              <div className="flex justify-between items-center group-hover/range:opacity-20 transition-opacity">
+                <span className="text-xs font-bold text-foreground">{formatPrice(quote.dayLow)}</span>
+                <div className="h-1 flex-1 mx-3 rounded-full bg-muted/30" />
+                <span className="text-xs font-bold text-foreground">{formatPrice(quote.dayHigh)}</span>
               </div>
-            </div>
-
-            {/* Monthly Range */}
-            <div className="p-3 rounded-lg bg-card/40 border border-border/10 opacity-80">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Monthly Explorer</span>
-                <span className="text-[9px] font-bold text-primary/60 italic">AI Estimate</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-bold text-foreground/80">{formatPrice(quote.monthLow)}</span>
-                <div className="h-1 flex-1 mx-3 rounded-full bg-muted/20" />
-                <span className="text-sm font-bold text-foreground/80">{formatPrice(quote.monthHigh)}</span>
+              {/* Trend Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center p-2 opacity-0 group-hover/range:opacity-100 transition-opacity pointer-events-none">
+                {charts['1d'] && <Sparkline data={charts['1d']} width={240} height={40} isPositive={isPositive} />}
               </div>
             </div>
 
-            {/* 52-Week Range */}
-            <div className="p-3 rounded-lg bg-card/40 border border-border/10 opacity-60">
+            {/* Weekly Range */}
+            <div
+              className="group/range relative p-3 rounded-lg bg-card/40 border border-border/10 hover:border-accent/40 transition-all cursor-crosshair overflow-visible"
+              onMouseEnter={() => fetchChart('5d')}
+            >
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-balance">52-Week Extremes</span>
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Weekly Outlook</span>
+                {loadingRange === '5d' && <Loader2 className="h-3 w-3 animate-spin text-accent" />}
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-bold text-foreground/70">{formatPrice(quote.fiftyTwoWeekLow)}</span>
+              <div className="flex justify-between items-center group-hover/range:opacity-10 transition-opacity">
+                <span className="text-xs font-bold text-foreground/70 italic">5 Trading Days</span>
+                <div className="h-px flex-1 mx-3 bg-muted/20" />
+                <span className="text-xs font-bold text-foreground/70 italic">Historical Intel</span>
+              </div>
+              {/* Trend Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center p-2 opacity-0 group-hover/range:opacity-100 transition-opacity pointer-events-none">
+                {charts['5d'] && <Sparkline data={charts['5d']} width={240} height={40} isPositive={isPositive} />}
+              </div>
+            </div>
+
+            {/* Yearly Range */}
+            <div
+              className="group/range relative p-3 rounded-lg bg-card/40 border border-border/10 hover:border-secondary/40 transition-all cursor-crosshair overflow-visible"
+              onMouseEnter={() => fetchChart('1y')}
+            >
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">52-Week Tier</span>
+                {loadingRange === '1y' && <Loader2 className="h-3 w-3 animate-spin text-secondary" />}
+              </div>
+              <div className="flex justify-between items-center group-hover/range:opacity-20 transition-opacity">
+                <span className="text-xs font-bold text-foreground/50">{formatPrice(quote.fiftyTwoWeekLow)}</span>
                 <div className="h-1 flex-1 mx-3 rounded-full bg-muted/10" />
-                <span className="text-sm font-bold text-foreground/70">{formatPrice(quote.fiftyTwoWeekHigh)}</span>
+                <span className="text-xs font-bold text-foreground/50">{formatPrice(quote.fiftyTwoWeekHigh)}</span>
+              </div>
+              {/* Trend Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center p-2 opacity-0 group-hover/range:opacity-100 transition-opacity pointer-events-none">
+                {charts['1y'] && <Sparkline data={charts['1y']} width={240} height={40} isPositive={(charts['1y'][charts['1y'].length - 1] > charts['1y'][0])} />}
               </div>
             </div>
           </div>

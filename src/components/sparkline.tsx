@@ -24,11 +24,13 @@ export function Sparkline({ data, width = 120, height = 40, isPositive = true }:
 
     const color = isPositive ? 'var(--color-primary)' : 'var(--color-destructive)'
 
+    const gradientId = React.useId()
+
     return (
         <div className="relative" style={{ width, height }}>
             <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
                 <defs>
-                    <linearGradient id={`gradient-${isPositive}`} x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={color} stopOpacity="0.2" />
                         <stop offset="100%" stopColor={color} stopOpacity="0" />
                     </linearGradient>
@@ -36,7 +38,7 @@ export function Sparkline({ data, width = 120, height = 40, isPositive = true }:
 
                 {/* Fill Area */}
                 <polyline
-                    fill={`url(#gradient-${isPositive})`}
+                    fill={`url(#${gradientId})`}
                     stroke="none"
                     points={`${width},${height} 0,${height} ${points}`}
                 />
