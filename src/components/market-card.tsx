@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card"
 import { RiskBadge } from "./risk-badge"
 import { VolumeIndicator } from "./volume-indicator"
 import { NewsModal } from "./news-modal"
-import { TrendingUp, TrendingDown, ArrowRight } from "lucide-react"
+import { Sparkline } from "./sparkline"
+import { TrendingUp, TrendingDown, ArrowRight, Loader2 } from "lucide-react"
 import { MarketAnalysis } from "@/types/market"
 
 interface MarketCardProps {
@@ -14,6 +15,9 @@ interface MarketCardProps {
 
 export function MarketCard({ quote }: MarketCardProps) {
   const [isNewsOpen, setIsNewsOpen] = useState(false)
+  const [chartData, setChartData] = useState<number[] | null>(null)
+  const [loadingChart, setLoadingChart] = useState(false)
+
   const isPositive = quote.changePercent > 0
   const trendColor = isPositive ? "text-primary font-bold shadow-sm" : "text-destructive font-bold shadow-sm"
   const currencySymbol = quote.currency === 'GBP' ? '£' : '$'
@@ -28,6 +32,22 @@ export function MarketCard({ quote }: MarketCardProps) {
 
   const formatPrice = (val?: number) => val ? `${currencySymbol}${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "N/A"
 
+  const fetchChart = async () => {
+    if (chartData || loadingChart) return
+    try {
+      setLoadingChart(true)
+      const res = await fetch(`/api/chart/${quote.symbol}`)
+      if (res.ok) {
+        const data = await res.json()
+        setChartData(data.prices)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingChart(false)
+    }
+  }
+
   return (
     <>
       <Card className="group relative overflow-hidden border-border/50 bg-card/60 backdrop-blur-md p-6 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5">
@@ -38,9 +58,32 @@ export function MarketCard({ quote }: MarketCardProps) {
         <div className="relative">
           {/* Header */}
           <div className="mb-4 flex items-start justify-between">
-            <div>
-              <div className="mb-1 flex items-center gap-2">
-                <h3 className="text-2xl font-black tracking-tight text-foreground uppercase">{quote.symbol}</h3>
+            <div className="relative">
+              <div
+                className="mb-1 flex items-center gap-2 group/symbol cursor-pointer"
+                onMouseEnter={fetchChart}
+              >
+                <h3 className="text-2xl font-black tracking-tight text-foreground uppercase hover:text-primary transition-colors underline decoration-primary/20 underline-offset-4">
+                  {quote.symbol}
+                </h3>
+
+                {/* Sparkline Tooltip */}
+                <div className="pointer-events-none absolute left-0 top-full z-50 mt-2 w-48 scale-95 opacity-0 transition-all group-hover/symbol:scale-100 group-hover/symbol:opacity-100">
+                  <div className="rounded-xl border border-border/50 bg-background/95 p-4 shadow-2xl backdrop-blur-xl">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Daily Trend</span>
+                      {loadingChart && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
+                    </div>
+                    {chartData ? (
+                      <Sparkline data={chartData} width={160} height={60} isPositive={isPositive} />
+                    ) : !loadingChart && (
+                      <div className="flex h-[60px] items-center justify-center">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Hover to Load</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground tracking-widest uppercase">
                   {quote.assetType || 'Stock'}
                 </span>
