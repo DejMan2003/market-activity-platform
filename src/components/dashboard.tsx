@@ -62,9 +62,18 @@ export function Dashboard() {
     }
   }
 
+  const removeHistoryItem = (symbol: string) => {
+    const newHistory = searchHistory.filter(h => h !== symbol)
+    setSearchHistory(newHistory)
+    sessionStorage.setItem("search-history", JSON.stringify(newHistory))
+
+    setSearchedQuotes(prev => prev.filter(q => q.symbol !== symbol))
+  }
+
   const clearHistory = () => {
     setSearchHistory([])
     sessionStorage.removeItem("search-history")
+    setSearchedQuotes([])
   }
 
   const checkTutorial = () => {
@@ -184,6 +193,7 @@ export function Dashboard() {
             onSelect={handleSearchSelect}
             history={searchHistory}
             onClearHistory={clearHistory}
+            onRemoveHistoryItem={removeHistoryItem}
           />
         </div>
 
@@ -198,7 +208,11 @@ export function Dashboard() {
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {searchedQuotes.map((quote) => (
-                <MarketCard key={quote.symbol} quote={quote} />
+                <MarketCard
+                  key={quote.symbol}
+                  quote={quote}
+                  onRemove={() => removeHistoryItem(quote.symbol)}
+                />
               ))}
             </div>
           </div>

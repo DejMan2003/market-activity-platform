@@ -6,16 +6,17 @@ import { RiskBadge } from "./risk-badge"
 import { VolumeIndicator } from "./volume-indicator"
 import { NewsModal } from "./news-modal"
 import { Sparkline } from "./sparkline"
-import { TrendingUp, TrendingDown, ArrowRight, Loader2 } from "lucide-react"
+import { TrendingUp, TrendingDown, ArrowRight, Loader2, X } from "lucide-react"
 import { MarketAnalysis } from "@/types/market"
 
 interface MarketCardProps {
   quote: MarketAnalysis
+  onRemove?: () => void
 }
 
 type ChartRange = '1d' | '1mo' | '1y'
 
-export function MarketCard({ quote }: MarketCardProps) {
+export function MarketCard({ quote, onRemove }: MarketCardProps) {
   const [isNewsOpen, setIsNewsOpen] = useState(false)
   const [charts, setCharts] = useState<Record<ChartRange, number[] | null>>({
     '1d': null,
@@ -61,6 +62,18 @@ export function MarketCard({ quote }: MarketCardProps) {
         <div className="pointer-events-none absolute -right-8 -top-8 h-16 w-16 rotate-45 border border-primary/20 transition-all group-hover:border-primary/50" />
         <div className="pointer-events-none absolute -bottom-8 -left-8 h-16 w-16 -rotate-12 border border-primary/10 transition-all group-hover:border-primary/30" />
 
+        {onRemove && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onRemove()
+            }}
+            className="absolute top-4 right-4 z-20 p-1.5 rounded-full bg-background/50 border border-border/50 text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all opacity-0 group-hover:opacity-100"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+
         <div className="relative">
           {/* Header */}
           <div className="mb-4 flex items-start justify-between">
@@ -75,7 +88,6 @@ export function MarketCard({ quote }: MarketCardProps) {
               </div>
               <p className="text-[10px] font-bold text-muted-foreground line-clamp-1 opacity-70 uppercase tracking-tight">{quote.name}</p>
             </div>
-            <RiskBadge volume={quote.volume} assetType={quote.assetType} riskLevel={quote.riskLevel} />
           </div>
 
           {/* Price Section */}
@@ -173,12 +185,12 @@ export function MarketCard({ quote }: MarketCardProps) {
             <VolumeIndicator volume={quote.volume} />
           </div>
 
-          {/* Activity Score - Rebranded Score Dots */}
-          <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-4">
-            <div>
-              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3">Activity Index</p>
-              <div className="flex items-center gap-3">
-                <div className="flex gap-1">
+          {/* Metrics & Activity Stack */}
+          <div className="mt-4 border-t border-white/5 pt-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2">Activity Index</p>
+                <div className="flex items-center gap-1.5">
                   {[...Array(10)].map((_, i) => (
                     <div
                       key={i}
@@ -188,51 +200,53 @@ export function MarketCard({ quote }: MarketCardProps) {
                         }`}
                     />
                   ))}
+                  <span className="ml-2 text-[10px] font-black text-primary">{quote.score}/10</span>
                 </div>
-                <span className="text-xs font-black text-primary">{quote.score}/10</span>
               </div>
+              <RiskBadge volume={quote.volume} assetType={quote.assetType} riskLevel={quote.riskLevel} />
             </div>
-            {/* Additional Metrics Grid */}
-            <div className="mt-4 grid grid-cols-2 gap-2 border-t border-white/5 pt-4">
+
+            {/* Financial Metrics Grid */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-white/[0.02] rounded-xl p-3 border border-white/5">
               {quote.peRatio !== undefined && (
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">P/E Ratio</span>
-                  <span className="text-[10px] font-bold text-foreground">{quote.peRatio.toFixed(2)}</span>
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">P/E Ratio</span>
+                  <span className="text-xs font-bold text-foreground">{quote.peRatio.toFixed(2)}</span>
                 </div>
               )}
               {quote.eps !== undefined && (
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">EPS (TTM)</span>
-                  <span className="text-[10px] font-bold text-foreground">{quote.eps.toFixed(2)}</span>
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">EPS (TTM)</span>
+                  <span className="text-xs font-bold text-foreground">{quote.eps.toFixed(2)}</span>
                 </div>
               )}
               {quote.dividendYield !== undefined && (
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Div Yield</span>
-                  <span className="text-[10px] font-bold text-foreground">{(quote.dividendYield).toFixed(2)}%</span>
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">Div Yield</span>
+                  <span className="text-xs font-bold text-foreground">{(quote.dividendYield).toFixed(2)}%</span>
                 </div>
               )}
               {quote.beta !== undefined && (
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Beta (5Y)</span>
-                  <span className="text-[10px] font-bold text-foreground">{quote.beta.toFixed(2)}</span>
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">Beta (5Y)</span>
+                  <span className="text-xs font-bold text-foreground">{quote.beta.toFixed(2)}</span>
                 </div>
               )}
               {quote.exchangeName && (
-                <div className="flex flex-col col-span-2">
-                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Exchange</span>
-                  <span className="text-[10px] font-bold text-foreground/70 truncate">{quote.exchangeName}</span>
+                <div className="flex flex-col col-span-2 border-t border-white/5 pt-2 mt-1">
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">Exchange</span>
+                  <span className="text-[10px] font-bold text-foreground/60 truncate uppercase tracking-tight">
+                    {quote.exchangeName.replace('Toronto Stock Exchange', 'Toronto')}
+                  </span>
                 </div>
               )}
             </div>
 
-            {/* Region & Footer */}
-            <div className="mt-5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-white/5 px-3 py-1 text-[9px] font-black text-muted-foreground border border-white/5 uppercase tracking-tighter">
-                  {quote.region || 'Global'}
-                </span>
-              </div>
+            {/* Footer Actions */}
+            <div className="mt-4 flex items-center justify-between">
+              <span className="rounded-full bg-white/5 px-3 py-1 text-[9px] font-black text-muted-foreground border border-white/5 uppercase tracking-tighter">
+                {quote.region || 'Global'}
+              </span>
               <button
                 onClick={() => setIsNewsOpen(true)}
                 className="flex items-center gap-2 text-[10px] font-black text-primary hover:text-primary/80 transition-all uppercase tracking-[0.1em]"

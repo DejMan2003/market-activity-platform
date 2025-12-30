@@ -15,9 +15,10 @@ interface SearchBarProps {
     onSelect: (symbol: string) => void
     history: string[]
     onClearHistory: () => void
+    onRemoveHistoryItem: (symbol: string) => void
 }
 
-export function SearchBar({ onSelect, history, onClearHistory }: SearchBarProps) {
+export function SearchBar({ onSelect, history, onClearHistory, onRemoveHistoryItem }: SearchBarProps) {
     const [query, setQuery] = useState("")
     const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
     const [loading, setLoading] = useState(false)
@@ -61,6 +62,11 @@ export function SearchBar({ onSelect, history, onClearHistory }: SearchBarProps)
         onSelect(symbol)
         setQuery("")
         setIsOpen(false)
+    }
+
+    const handleRemove = (e: React.MouseEvent, symbol: string) => {
+        e.stopPropagation()
+        onRemoveHistoryItem(symbol)
     }
 
     return (
@@ -127,7 +133,7 @@ export function SearchBar({ onSelect, history, onClearHistory }: SearchBarProps)
                             </div>
                         )}
 
-                        {/* Recent History (only show if no search suggestions or as a separate section) */}
+                        {/* Recent History */}
                         {history.length > 0 && (
                             <div className="p-2 border-t border-border/30 bg-muted/20">
                                 <div className="flex items-center justify-between px-3 py-2 mb-1">
@@ -144,13 +150,19 @@ export function SearchBar({ onSelect, history, onClearHistory }: SearchBarProps)
                                 </div>
                                 <div className="flex flex-wrap gap-2 px-3 pb-2">
                                     {history.map((h) => (
-                                        <button
+                                        <div
                                             key={h}
+                                            className="group/item flex items-center gap-1 pl-3 pr-1.5 py-1.5 rounded-lg bg-background border border-border/50 text-[10px] font-black text-foreground hover:border-primary/50 transition-all uppercase cursor-pointer"
                                             onClick={() => handleSelect(h)}
-                                            className="px-3 py-1.5 rounded-lg bg-background border border-border/50 text-[10px] font-black text-foreground hover:border-primary/50 hover:text-primary transition-all uppercase"
                                         >
-                                            {h}
-                                        </button>
+                                            <span className="group-hover/item:text-primary">{h}</span>
+                                            <button
+                                                onClick={(e) => handleRemove(e, h)}
+                                                className="p-0.5 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors opacity-40 group-hover/item:opacity-100"
+                                            >
+                                                <X className="h-2.5 w-2.5" />
+                                            </button>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
