@@ -12,6 +12,11 @@ export interface MarketQuote {
     // Market Details
     marketCap?: number;
     trailingPE?: number;
+    // Price Ranges
+    dayHigh?: number;
+    dayLow?: number;
+    monthHigh?: number;
+    monthLow?: number;
     fiftyTwoWeekHigh?: number;
     fiftyTwoWeekLow?: number;
     // UI extensions

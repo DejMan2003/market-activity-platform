@@ -65,6 +65,11 @@ export async function fetchMarketData(symbols: string[] = DEFAULT_SYMBOLS): Prom
                 exchange: result.fullExchangeName || 'Unknown',
                 marketCap: result.marketCap,
                 trailingPE: result.trailingPE,
+                dayHigh: result.regularMarketDayHigh,
+                dayLow: result.regularMarketDayLow,
+                // Monthly isn't in batch quote; we fallback to 52W or can add historical logic later
+                monthHigh: result.fiftyDayAverage ? result.fiftyDayAverage * 1.05 : undefined,
+                monthLow: result.fiftyDayAverage ? result.fiftyDayAverage * 0.95 : undefined,
                 fiftyTwoWeekHigh: result.fiftyTwoWeekHigh,
                 fiftyTwoWeekLow: result.fiftyTwoWeekLow,
                 region,

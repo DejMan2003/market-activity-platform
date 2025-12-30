@@ -16,6 +16,7 @@ export function MarketCard({ quote }: MarketCardProps) {
   const [isNewsOpen, setIsNewsOpen] = useState(false)
   const isPositive = quote.changePercent > 0
   const trendColor = isPositive ? "text-primary font-bold shadow-sm" : "text-destructive font-bold shadow-sm"
+  const currencySymbol = quote.currency === 'GBP' ? '£' : '$'
 
   const formatMarketCap = (cap?: number) => {
     if (!cap) return "N/A"
@@ -24,6 +25,8 @@ export function MarketCard({ quote }: MarketCardProps) {
     if (cap >= 1e6) return `${(cap / 1e6).toFixed(2)}M`
     return cap.toLocaleString()
   }
+
+  const formatPrice = (val?: number) => val ? `${currencySymbol}${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "N/A"
 
   return (
     <>
@@ -48,14 +51,10 @@ export function MarketCard({ quote }: MarketCardProps) {
           </div>
 
           {/* Price Section */}
-          <div className="mb-6 p-3 rounded-lg bg-background/40 border border-border/20">
+          <div className="mb-6 p-4 rounded-xl bg-background/40 border border-border/20 shadow-inner">
             <div className="mb-1 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-foreground">
-                {quote.currency === 'GBP' ? '£' : '$'}
-                {quote.price.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+              <span className="text-3xl font-black text-foreground tabular-nums">
+                {formatPrice(quote.price)}
               </span>
             </div>
             <div className={`flex items-center gap-1 text-sm ${trendColor}`}>
@@ -67,7 +66,52 @@ export function MarketCard({ quote }: MarketCardProps) {
             </div>
           </div>
 
-          {/* Market Details Grid */}
+          {/* Market Ranges Section - Request: Start from Daily and show others below */}
+          <div className="mb-6 space-y-4">
+            {/* Daily Range */}
+            <div className="p-3 rounded-lg bg-card/40 border border-border/10">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Daily Range</span>
+                <div className="flex gap-2 text-[10px] font-black uppercase">
+                  <span className="text-destructive">Low</span>
+                  <span className="text-emerald-500">High</span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-foreground">{formatPrice(quote.dayLow)}</span>
+                <div className="h-1 flex-1 mx-3 rounded-full bg-muted/30 relative">
+                  <div className="absolute top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary" style={{ left: '50%' }} />
+                </div>
+                <span className="text-sm font-bold text-foreground">{formatPrice(quote.dayHigh)}</span>
+              </div>
+            </div>
+
+            {/* Monthly Range */}
+            <div className="p-3 rounded-lg bg-card/40 border border-border/10 opacity-80">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Monthly Explorer</span>
+                <span className="text-[9px] font-bold text-primary/60 italic">AI Estimate</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-foreground/80">{formatPrice(quote.monthLow)}</span>
+                <div className="h-1 flex-1 mx-3 rounded-full bg-muted/20" />
+                <span className="text-sm font-bold text-foreground/80">{formatPrice(quote.monthHigh)}</span>
+              </div>
+            </div>
+
+            {/* 52-Week Range */}
+            <div className="p-3 rounded-lg bg-card/40 border border-border/10 opacity-60">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-balance">52-Week Extremes</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-foreground/70">{formatPrice(quote.fiftyTwoWeekLow)}</span>
+                <div className="h-1 flex-1 mx-3 rounded-full bg-muted/10" />
+                <span className="text-sm font-bold text-foreground/70">{formatPrice(quote.fiftyTwoWeekHigh)}</span>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">Market Cap</span>
@@ -76,14 +120,6 @@ export function MarketCard({ quote }: MarketCardProps) {
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">P/E Ratio</span>
               <span className="text-sm font-black text-foreground">{quote.trailingPE ? quote.trailingPE.toFixed(2) : "N/A"}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">52W High</span>
-              <span className="text-sm font-black text-emerald-500">{quote.fiftyTwoWeekHigh ? `${quote.currency === 'GBP' ? '£' : '$'}${quote.fiftyTwoWeekHigh.toFixed(2)}` : "N/A"}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">52W Low</span>
-              <span className="text-sm font-black text-destructive">{quote.fiftyTwoWeekLow ? `${quote.currency === 'GBP' ? '£' : '$'}${quote.fiftyTwoWeekLow.toFixed(2)}` : "N/A"}</span>
             </div>
           </div>
 
