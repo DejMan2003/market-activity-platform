@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import YahooFinance from 'yahoo-finance2';
 
-const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
+const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
+const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -12,17 +12,26 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const results = await yahooFinance.search(query, {
-            newsCount: 0,
-            quotesCount: 10
-        });
+        if (!FINNHUB_API_KEY) {
+            return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
+        }
 
-        // Map quotes to a simpler format for suggestion list
-        const suggestions = results.quotes.map((q: any) => ({
-            symbol: q.symbol,
-            name: q.shortname || q.longname || q.symbol,
-            type: q.quoteType,
-            exchange: q.exchange
+        // Use Finnhub symbol lookup
+        const url = `${FINNHUB_BASE_URL}/search?q=${encodeURIComponent(query)}&token=${FINNHUB_API_KEY}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Finnhub API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Map Finnhub results to our format
+        const suggestions = (data.result || []).slice(0, 10).map((item: any) => ({
+            symbol: item.symbol,
+            name: item.description || item.symbol,
+            type: item.type || 'Common Stock',
+            exchange: item.displaySymbol || item.symbol
         }));
 
         return NextResponse.json(suggestions);
