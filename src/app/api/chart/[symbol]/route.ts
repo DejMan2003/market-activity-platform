@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import YahooFinance from 'yahoo-finance2';
-
-const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
+import { fetchChartData } from '@/lib/yahoo';
 
 export async function GET(
     request: NextRequest,
@@ -16,42 +14,40 @@ export async function GET(
     }
 
     try {
-        let period1: Date;
-        let interval: "15m" | "1h" | "1d" = "15m";
+        let resolution: 'D' | '60' | '15' = '15';
+        let from: number;
+        const to = Math.floor(Date.now() / 1000);
 
         switch (range) {
             case '1mo':
-                period1 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-                interval = "1h";
+                from = to - (30 * 24 * 60 * 60); // 30 days ago
+                resolution = '60'; // 1 hour candles
                 break;
             case '5d':
-                period1 = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-                interval = "1h";
+                from = to - (5 * 24 * 60 * 60); // 5 days ago
+                resolution = '60'; // 1 hour candles
                 break;
             case '1y':
-                period1 = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
-                interval = "1d";
+                from = to - (365 * 24 * 60 * 60); // 1 year ago
+                resolution = 'D'; // Daily candles
                 break;
             case '1d':
             default:
-                period1 = new Date(Date.now() - 24 * 60 * 60 * 1000);
-                interval = "15m";
+                from = to - (24 * 60 * 60); // 24 hours ago
+                resolution = '15'; // 15 minute candles
         }
 
-        const result = await yahooFinance.chart(symbol, {
-            period1,
-            interval
-        });
+        const prices = await fetchChartData(symbol, resolution, from, to);
 
-        const prices = result.quotes
-            .map(q => q.close)
-            .filter((p): p is number => p !== null && p !== undefined);
+        if (prices.length === 0) {
+            return NextResponse.json({ error: 'No chart data available' }, { status: 404 });
+        }
 
         return NextResponse.json({
-            symbol: result.meta.symbol,
+            symbol,
             range,
             prices,
-            previousClose: result.meta.previousClose || prices[0]
+            previousClose: prices[0]
         });
     } catch (error) {
         console.error(`Error fetching ${range} chart for ${symbol}:`, error);
