@@ -46,14 +46,7 @@ export interface NewsItem {
     link: string;
     providerPublishTime: string;
     type: string;
-    thumbnail?: {
-        resolutions: Array<{
-            url: string;
-            width: number;
-            height: number;
-            tag: string;
-        }>;
-    };
+    thumbnail?: string | null;
     relatedTickers?: string[];
     // AI Analysis Fields
     importance: 1 | 2 | 3 | 4 | 5; // 1 = Trivial, 5 = Critical

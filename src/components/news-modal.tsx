@@ -96,10 +96,10 @@ export function NewsModal({ symbol, name, isOpen, onClose }: NewsModalProps) {
                                 >
                                     {/* Headline & Metadata */}
                                     <div className="flex gap-4">
-                                        {item.thumbnail?.resolutions[0]?.url && (
+                                        {item.thumbnail && (
                                             <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-border/50">
                                                 <img
-                                                    src={item.thumbnail.resolutions[0].url}
+                                                    src={item.thumbnail}
                                                     alt=""
                                                     className="w-full h-full object-cover"
                                                 />

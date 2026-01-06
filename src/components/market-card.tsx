@@ -123,7 +123,7 @@ export function MarketCard({ quote, onRemove }: MarketCardProps) {
                 <span className="text-xs font-bold text-foreground">{formatPrice(quote.dayHigh)}</span>
               </div>
               {/* Trend Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center p-2 opacity-0 group-hover/range:opacity-100 transition-opacity pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center p-2 opacity-0 group-hover/range:opacity-100 transition-opacity z-10">
                 {charts['1d'] && <Sparkline data={charts['1d']} width={240} height={40} isPositive={isPositive} />}
               </div>
             </div>
@@ -143,7 +143,7 @@ export function MarketCard({ quote, onRemove }: MarketCardProps) {
                 <span className="text-xs font-bold text-foreground/70 uppercase">Market Flow</span>
               </div>
               {/* Trend Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center p-2 opacity-0 group-hover/range:opacity-100 transition-opacity pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center p-2 opacity-0 group-hover/range:opacity-100 transition-opacity z-10">
                 {charts['1mo'] && <Sparkline data={charts['1mo']} width={240} height={40} isPositive={(charts['1mo'][charts['1mo'].length - 1] > charts['1mo'][0])} />}
               </div>
             </div>
@@ -163,7 +163,7 @@ export function MarketCard({ quote, onRemove }: MarketCardProps) {
                 <span className="text-xs font-bold text-foreground/50">{formatPrice(quote.fiftyTwoWeekHigh)}</span>
               </div>
               {/* Trend Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center p-2 opacity-0 group-hover/range:opacity-100 transition-opacity pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center p-2 opacity-0 group-hover/range:opacity-100 transition-opacity z-10">
                 {charts['1y'] && <Sparkline data={charts['1y']} width={240} height={40} isPositive={(charts['1y'][charts['1y'].length - 1] > charts['1y'][0])} />}
               </div>
             </div>
