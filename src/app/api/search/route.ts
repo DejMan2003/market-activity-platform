@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
-const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
-
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
@@ -12,27 +9,25 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        if (!FINNHUB_API_KEY) {
-            return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
-        }
-
-        // Use Finnhub symbol lookup
-        const url = `${FINNHUB_BASE_URL}/search?q=${encodeURIComponent(query)}&token=${FINNHUB_API_KEY}`;
-        const response = await fetch(url);
+        const response = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}`);
 
         if (!response.ok) {
-            throw new Error(`Finnhub API error: ${response.status}`);
+            throw new Error(`Yahoo Finance API error: ${response.status}`);
         }
 
         const data = await response.json();
+        const quotes = data.quotes || [];
 
-        // Map Finnhub results to our format
-        const suggestions = (data.result || []).slice(0, 10).map((item: any) => ({
-            symbol: item.symbol,
-            name: item.description || item.symbol,
-            type: item.type || 'Common Stock',
-            exchange: item.displaySymbol || item.symbol
-        }));
+        // Map Yahoo results to our format
+        const suggestions = quotes
+            .filter((item: any) => item.isYaConf) // Filter for confident matches if available, or just take all
+            .slice(0, 10)
+            .map((item: any) => ({
+                symbol: item.symbol,
+                name: item.shortname || item.longname || item.symbol,
+                type: item.typeDisp || 'Stock',
+                exchange: item.exchDisp || item.exchange || 'Unknown'
+            }));
 
         return NextResponse.json(suggestions);
     } catch (error) {

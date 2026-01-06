@@ -1,197 +1,152 @@
+import _YahooFinance from 'yahoo-finance2';
 import { MarketQuote } from '@/types/market';
 
-const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
-const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
+const yahooFinance = new (_YahooFinance as any)();
 
-// Default list of symbols to track
 const DEFAULT_SYMBOLS = [
-    // US Tech Giants
+    // US Indices & Tech
+    '^GSPC', '^DJI', '^IXIC',
     'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA', 'AVGO', 'NFLX', 'AMD', 'INTC',
     // US Blue Chips
-    'BRK.B', 'V', 'MA', 'JPM', 'UNH', 'COST', 'DIS', 'WMT', 'PG', 'JNJ', 'XOM', 'HD', 'CVX', 'MRK', 'ABBV', 'PEP', 'KO',
+    'BRK-B', 'V', 'MA', 'JPM', 'UNH', 'COST', 'DIS', 'WMT', 'PG', 'JNJ', 'XOM', 'HD', 'CVX', 'MRK', 'ABBV', 'PEP', 'KO',
+    // UK (FTSE 100)
+    'AZN.L', 'SHEL.L', 'HSBA.L', 'ULVR.L', 'BP.L', 'RIO.L', 'DGE.L', 'GSK.L', 'REL.L', 'LSEG.L',
+    'BATS.L', 'NG.L', 'RKT.L', 'BARC.L', 'LLOY.L', 'VOD.L', 'PRU.L', 'EXPN.L', 'STAN.L', 'ABF.L',
+    // Canada (S&P/TSX 60)
+    'SHOP.TO', 'RY.TO', 'TD.TO', 'AEM.TO', 'ATD.TO', 'BMO.TO', 'BNS.TO', 'ABX.TO', 'BCE.TO', 'BAM.TO',
+    'BN.TO', 'CM.TO', 'CVE.TO', 'CSU.TO', 'DOL.TO', 'ENB.TO', 'FTS.TO', 'CNR.TO', 'CP.TO', 'CNQ.TO',
+    // Crypto & Popular ETFs
+    'BTC-USD', 'ETH-USD', 'SOL-USD',
+    'SPY', 'QQQ', 'VOO'
 ];
-
-// Helper function to delay execution
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Fetch quote data from Finnhub
-async function fetchFinnhubQuote(symbol: string): Promise<any> {
-    const url = `${FINNHUB_BASE_URL}/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        throw new Error(`Finnhub API error: ${response.status} ${response.statusText}`);
-    }
-
-    return response.json();
-}
-
-// Fetch company profile from Finnhub
-async function fetchFinnhubProfile(symbol: string): Promise<any> {
-    const url = `${FINNHUB_BASE_URL}/stock/profile2?symbol=${symbol}&token=${FINNHUB_API_KEY}`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        throw new Error(`Finnhub API error: ${response.status} ${response.statusText}`);
-    }
-
-    return response.json();
-}
-
-// Fetch basic financials from Finnhub
-async function fetchFinnhubFinancials(symbol: string): Promise<any> {
-    const url = `${FINNHUB_BASE_URL}/stock/metric?symbol=${symbol}&metric=all&token=${FINNHUB_API_KEY}`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        return null; // Financials might not be available for all symbols
-    }
-
-    return response.json();
-}
 
 export async function fetchMarketData(symbols: string[] = DEFAULT_SYMBOLS): Promise<MarketQuote[]> {
     try {
-        if (!FINNHUB_API_KEY) {
-            console.error('FINNHUB_API_KEY is not set in environment variables');
-            return [];
-        }
+        const results = await yahooFinance.quote(symbols) as any[];
 
-        const results: MarketQuote[] = [];
+        return results.map((result: any) => {
+            const symbol = result.symbol;
+            let region = "US";
+            let assetType = "Stock";
 
-        // Finnhub free tier: 60 calls/minute
-        // We need 3 calls per symbol (quote, profile, financials)
-        // So we can safely fetch ~20 symbols per minute
-        const BATCH_SIZE = 15;
-        const DELAY_BETWEEN_SYMBOLS = 100; // 100ms delay between symbols
-        const DELAY_BETWEEN_BATCHES = 1000; // 1s delay between batches
-
-        for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
-            const batch = symbols.slice(i, i + BATCH_SIZE);
-
-            if (i > 0) {
-                await delay(DELAY_BETWEEN_BATCHES);
+            if (symbol.endsWith('.TO')) region = "Canada";
+            else if (symbol.endsWith('.L')) region = "UK";
+            else if (symbol.includes('-USD')) {
+                region = "Global";
+                assetType = "Crypto";
+            } else if (symbol.startsWith('^')) {
+                region = "US";
+                assetType = "Index";
             }
 
-            for (const symbol of batch) {
-                try {
-                    // Fetch quote and profile in parallel
-                    const [quoteData, profileData] = await Promise.all([
-                        fetchFinnhubQuote(symbol),
-                        fetchFinnhubProfile(symbol)
-                    ]);
-
-                    // Add small delay before next symbol
-                    await delay(DELAY_BETWEEN_SYMBOLS);
-
-                    // Fetch financials (optional, may not be available for all)
-                    let financialsData = null;
-                    try {
-                        financialsData = await fetchFinnhubFinancials(symbol);
-                        await delay(DELAY_BETWEEN_SYMBOLS);
-                    } catch (err) {
-                        // Financials not available, continue without them
-                    }
-
-                    // Map Finnhub data to our MarketQuote interface
-                    const price = quoteData.c || 0; // current price
-                    const previousClose = quoteData.pc || price;
-                    const change = price - previousClose;
-                    const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
-
-                    // Determine region and asset type
-                    let region = "US";
-                    let assetType = "Stock";
-
-                    if (symbol.includes('USD')) {
-                        region = "Global";
-                        assetType = "Crypto";
-                    }
-
-                    const etfs = ['VOO', 'SPY', 'QQQ', 'IVV', 'VTI', 'VEA', 'VWO'];
-                    if (etfs.includes(symbol)) {
-                        assetType = "ETF";
-                    }
-
-                    const marketQuote: MarketQuote = {
-                        symbol,
-                        name: profileData?.name || symbol,
-                        price,
-                        change,
-                        changePercent,
-                        volume: financialsData?.metric?.['10DayAverageTradingVolume'] || 0,
-                        avgVolume: financialsData?.metric?.['10DayAverageTradingVolume'] || 0,
-                        marketState: 'REGULAR',
-                        currency: profileData?.currency || 'USD',
-                        exchange: profileData?.exchange || 'Unknown',
-                        exchangeName: profileData?.exchange,
-                        marketCap: profileData?.marketCapitalization ? profileData.marketCapitalization * 1000000 : undefined,
-                        peRatio: financialsData?.metric?.peBasicExclExtraTTM,
-                        eps: financialsData?.metric?.epsBasicExclExtraItemsTTM,
-                        dividendYield: financialsData?.metric?.dividendYieldIndicatedAnnual,
-                        beta: financialsData?.metric?.beta,
-                        dayHigh: quoteData.h || price,
-                        dayLow: quoteData.l || price,
-                        monthHigh: financialsData?.metric?.['52WeekHigh'],
-                        monthLow: financialsData?.metric?.['52WeekLow'],
-                        fiftyTwoWeekHigh: financialsData?.metric?.['52WeekHigh'],
-                        fiftyTwoWeekLow: financialsData?.metric?.['52WeekLow'],
-                        region,
-                        assetType,
-                    };
-
-                    results.push(marketQuote);
-                    console.log(`Fetched ${symbol}: $${price.toFixed(2)} (${changePercent > 0 ? '+' : ''}${changePercent.toFixed(2)}%)`);
-
-                } catch (error) {
-                    console.error(`Error fetching ${symbol}:`, error);
-                    // Continue with other symbols
-                }
+            const etfs = ['VOO', 'SPY', 'QQQ', 'IVV', 'VTI', 'VEA', 'VWO'];
+            if (etfs.includes(symbol)) {
+                assetType = "ETF";
             }
-        }
 
-        console.log(`Successfully fetched ${results.length}/${symbols.length} symbols from Finnhub`);
-        return results;
-
+            return {
+                symbol,
+                name: result.shortName || result.longName || symbol,
+                price: result.regularMarketPrice || 0,
+                change: result.regularMarketChange || 0,
+                changePercent: result.regularMarketChangePercent || 0,
+                volume: result.regularMarketVolume || 0,
+                avgVolume: result.averageDailyVolume3Month || 0,
+                marketState: result.marketState === 'REGULAR' ? 'REGULAR' : 'CLOSED',
+                currency: result.currency || 'USD',
+                exchange: result.fullExchangeName || 'Unknown',
+                exchangeName: result.fullExchangeName,
+                marketCap: result.marketCap,
+                peRatio: result.trailingPE,
+                eps: result.epsTrailingTwelveMonths,
+                dividendYield: result.trailingAnnualDividendYield ? result.trailingAnnualDividendYield * 100 : undefined,
+                beta: result.beta,
+                dayHigh: result.regularMarketDayHigh,
+                dayLow: result.regularMarketDayLow,
+                fiftyTwoWeekHigh: result.fiftyTwoWeekHigh,
+                fiftyTwoWeekLow: result.fiftyTwoWeekLow,
+                region,
+                assetType,
+            };
+        });
     } catch (error) {
-        console.error('Error fetching market data from Finnhub:', error);
+        console.error('Error fetching market data from Yahoo:', error);
         return [];
     }
 }
 
-// Fetch candle/chart data from Finnhub
-export async function fetchChartData(
-    symbol: string,
-    resolution: 'D' | '60' | '15' = 'D',
-    from?: number,
-    to?: number
-): Promise<number[]> {
+export async function fetchChartData(symbol: string, range: string = '1d') {
     try {
-        if (!FINNHUB_API_KEY) {
-            console.error('FINNHUB_API_KEY is not set');
-            return [];
+        let interval: "1m" | "2m" | "5m" | "15m" | "30m" | "60m" | "90m" | "1h" | "1d" | "5d" | "1wk" | "1mo" | "3mo" = "15m";
+        // Map simplified range to interval
+        switch (range) {
+            case '1mo': interval = "60m"; break;
+            case '5d': interval = "30m"; break; // or 1h
+            case '1y': interval = "1d"; break;
+            case '1d': default: interval = "5m"; // finer grain for 1d
         }
 
-        const now = Math.floor(Date.now() / 1000);
-        const fromTimestamp = from || (now - 365 * 24 * 60 * 60); // Default: 1 year ago
-        const toTimestamp = to || now;
+        // Calculate period1 based on range roughly if needed, purely for 'queryOptions' if range not supported?
+        // simple-chart via yahoo-finance2 supports 'range' directly if using queryOptions properly or via 'chart' method?
+        // The library 'chart' method signature: chart(symbol, queryOptions)
+        // queryOptions: { period1, period2, interval, includePrePost, events }
+        // It DOES NOT support 'range' string in the typed options directly in all versions, but let's check.
+        // Actually it's safer to use period1/period2.
 
-        const url = `${FINNHUB_BASE_URL}/stock/candle?symbol=${symbol}&resolution=${resolution}&from=${fromTimestamp}&to=${toTimestamp}&token=${FINNHUB_API_KEY}`;
-        const response = await fetch(url);
+        const now = new Date();
+        let period1 = new Date();
 
-        if (!response.ok) {
-            throw new Error(`Finnhub chart API error: ${response.status}`);
+        switch (range) {
+            case '1d': period1.setDate(now.getDate() - 1); break; // actually 2 days to be safe for weekends? 
+            // Better: use library logic if possible. But manually:
+            case '5d': period1.setDate(now.getDate() - 5); break;
+            case '1mo': period1.setMonth(now.getMonth() - 1); break;
+            case '1y': period1.setFullYear(now.getFullYear() - 1); break;
+            default: period1.setDate(now.getDate() - 1);
         }
 
-        const data = await response.json();
+        // For 1d, we want the last trading day.
+        // Yahoo chart API supports 'range' param. yahoo-finance2 allows passing unknown options.
+        // Let's try passing 'range' directly if possible, or use dates.
+        // Using `queryOptions` with `range` might work if the library passes it through.
+        // Documentation says: queryOptions matches API parameters.
+        const queryOptions = { range, interval, includePrePost: false };
 
-        if (data.s === 'no_data' || !data.c) {
-            return [];
-        }
+        const result = await yahooFinance.chart(symbol, queryOptions as any) as any;
 
-        return data.c; // Close prices
+        // result is { meta, timestamp, indicators } usually, or the processed result.
+        // In yahoo-finance2, 'chart' returns the raw struct usually.
+
+        const meta = result.meta;
+        const quotes = result.quotes; // Array of { date, open, high, low, close, volume }
+
+        const prices = quotes
+            .map((q: any) => q.close)
+            .filter((p: any): p is number => typeof p === 'number');
+
+        return {
+            symbol: meta.symbol,
+            range,
+            prices,
+            previousClose: meta.chartPreviousClose || meta.previousClose || prices[0]
+        };
     } catch (error) {
-        console.error(`Error fetching chart data for ${symbol}:`, error);
+        console.error(`Error fetching ${range} chart for ${symbol}:`, error);
+        return {
+            symbol,
+            range,
+            prices: [],
+            previousClose: 0
+        };
+    }
+}
+
+export async function fetchNewsData(symbol: string) {
+    try {
+        const result = await yahooFinance.search(symbol, { newsCount: 10 }) as any;
+        return result.news || [];
+    } catch (error) {
+        console.error(`Error fetching news for ${symbol}:`, error);
         return [];
     }
 }

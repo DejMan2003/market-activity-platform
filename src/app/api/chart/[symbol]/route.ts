@@ -14,41 +14,13 @@ export async function GET(
     }
 
     try {
-        let resolution: 'D' | '60' | '15' = '15';
-        let from: number;
-        const to = Math.floor(Date.now() / 1000);
+        const data = await fetchChartData(symbol, range);
 
-        switch (range) {
-            case '1mo':
-                from = to - (30 * 24 * 60 * 60); // 30 days ago
-                resolution = '60'; // 1 hour candles
-                break;
-            case '5d':
-                from = to - (5 * 24 * 60 * 60); // 5 days ago
-                resolution = '60'; // 1 hour candles
-                break;
-            case '1y':
-                from = to - (365 * 24 * 60 * 60); // 1 year ago
-                resolution = 'D'; // Daily candles
-                break;
-            case '1d':
-            default:
-                from = to - (24 * 60 * 60); // 24 hours ago
-                resolution = '15'; // 15 minute candles
-        }
-
-        const prices = await fetchChartData(symbol, resolution, from, to);
-
-        if (prices.length === 0) {
+        if (!data.prices || data.prices.length === 0) {
             return NextResponse.json({ error: 'No chart data available' }, { status: 404 });
         }
 
-        return NextResponse.json({
-            symbol,
-            range,
-            prices,
-            previousClose: prices[0]
-        });
+        return NextResponse.json(data);
     } catch (error) {
         console.error(`Error fetching ${range} chart for ${symbol}:`, error);
         return NextResponse.json({ error: 'Failed to fetch chart data' }, { status: 500 });

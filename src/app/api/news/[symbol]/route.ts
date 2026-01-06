@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NewsItem } from '@/types/market';
-
-const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
-const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
+import { fetchNewsData } from '@/lib/yahoo';
 
 function analyzeNews(title: string, symbol: string): {
     importance: NewsItem['importance'],
@@ -61,49 +59,34 @@ export async function GET(
     }
 
     try {
-        if (!FINNHUB_API_KEY) {
-            return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
-        }
-
-        // Fetch company news from Finnhub
-        const today = new Date();
-        const lastMonth = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-        const fromDate = lastMonth.toISOString().split('T')[0];
-        const toDate = today.toISOString().split('T')[0];
-
-        const url = `${FINNHUB_BASE_URL}/company-news?symbol=${symbol}&from=${fromDate}&to=${toDate}&token=${FINNHUB_API_KEY}`;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            throw new Error(`Finnhub API error: ${response.status}`);
-        }
-
-        const rawNews = await response.json();
+        const rawNews = await fetchNewsData(symbol);
 
         if (!Array.isArray(rawNews)) {
             return NextResponse.json([]);
         }
 
         const enhancedNews: NewsItem[] = rawNews.map((item: any) => {
-            const analysis = analyzeNews(item.headline, symbol);
+            const analysis = analyzeNews(item.title, symbol);
             return {
-                uuid: item.id?.toString() || Math.random().toString(),
-                title: item.headline,
-                publisher: item.source,
-                link: item.url,
-                providerPublishTime: item.datetime,
+                uuid: item.uuid || Math.random().toString(),
+                title: item.title,
+                publisher: item.publisher,
+                link: item.link,
+                providerPublishTime: item.providerPublishTime,
                 type: 'STORY',
-                thumbnail: item.image,
-                relatedTickers: [symbol],
+                thumbnail: item.thumbnail?.resolutions?.[0]?.url || null,
+                relatedTickers: item.relatedTickers || [symbol],
                 ...analysis
             };
         });
 
         const sortedNews = enhancedNews.sort((a, b) => {
+            // Sort by importance, then by date descending (newest first)
             if (b.importance !== a.importance) {
                 return b.importance - a.importance;
             }
-            return new Date(b.providerPublishTime).getTime() - new Date(a.providerPublishTime).getTime();
+            // Ensure providerPublishTime is treated as a number/timestamp
+            return (Number(b.providerPublishTime) || 0) - (Number(a.providerPublishTime) || 0);
         });
 
         return NextResponse.json(sortedNews);
