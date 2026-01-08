@@ -16,8 +16,8 @@ export function Sparkline({ data, width = 120, height = 40, isPositive = true, c
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Calculate chart properties
-    const { min, max, range, points, areaPoints } = useMemo(() => {
-        if (!data || data.length < 2) return { min: 0, max: 0, range: 1, points: '', areaPoints: '' };
+    const { min, max, range, points, areaPoints, trendPoints } = useMemo(() => {
+        if (!data || data.length < 2) return { min: 0, max: 0, range: 1, points: '', areaPoints: '', trendPoints: null };
 
         const min = Math.min(...data);
         const max = Math.max(...data);
@@ -31,7 +31,28 @@ export function Sparkline({ data, width = 120, height = 40, isPositive = true, c
 
         const areaPoints = `${width},${height} 0,${height} ${points}`;
 
-        return { min, max, range, points, areaPoints };
+        // Linear Regression for Line of Best Fit
+        const n = data.length;
+        let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+        for (let i = 0; i < n; i++) {
+            sumX += i;
+            sumY += data[i];
+            sumXY += i * data[i];
+            sumXX += i * i;
+        }
+
+        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        const intercept = (sumY - slope * sumX) / n;
+
+        const startY = slope * 0 + intercept;
+        const endY = slope * (n - 1) + intercept;
+
+        const y1 = height - ((startY - min) / range) * height;
+        const y2 = height - ((endY - min) / range) * height;
+
+        const trendPoints = { x1: 0, y1, x2: width, y2 };
+
+        return { min, max, range, points, areaPoints, trendPoints };
     }, [data, width, height]);
 
     if (!data || data.length < 2) return null;
@@ -99,6 +120,22 @@ export function Sparkline({ data, width = 120, height = 40, isPositive = true, c
                     points={points}
                     className="drop-shadow-[0_0_4px_rgba(var(--color-primary-rgb),0.5)]"
                 />
+
+                {/* Line of Best Fit (Linear Regression) - visible on hover */}
+                {trendPoints && hoverIndex !== null && (
+                    <line
+                        x1={trendPoints.x1}
+                        y1={trendPoints.y1}
+                        x2={trendPoints.x2}
+                        y2={trendPoints.y2}
+                        stroke="white"
+                        strokeOpacity="0.5"
+                        strokeWidth="1"
+                        strokeDasharray="4 2"
+                        className="animate-in fade-in duration-300"
+                    />
+                )}
+
 
                 {/* End Point Dot (Only show if not hovering) */}
                 {data.length > 0 && !crosshair && (

@@ -15,10 +15,9 @@ interface SearchBarProps {
     onSelect: (symbol: string) => void
     history: string[]
     onClearHistory: () => void
-    onRemoveHistoryItem: (symbol: string) => void
 }
 
-export function SearchBar({ onSelect, history, onClearHistory, onRemoveHistoryItem }: SearchBarProps) {
+export function SearchBar({ onSelect, history, onClearHistory }: SearchBarProps) {
     const [query, setQuery] = useState("")
     const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
     const [loading, setLoading] = useState(false)
@@ -62,11 +61,6 @@ export function SearchBar({ onSelect, history, onClearHistory, onRemoveHistoryIt
         onSelect(symbol)
         setQuery("")
         setIsOpen(false)
-    }
-
-    const handleRemove = (e: React.MouseEvent, symbol: string) => {
-        e.stopPropagation()
-        onRemoveHistoryItem(symbol)
     }
 
     return (
@@ -150,19 +144,13 @@ export function SearchBar({ onSelect, history, onClearHistory, onRemoveHistoryIt
                                 </div>
                                 <div className="flex flex-wrap gap-2 px-3 pb-2">
                                     {history.map((h) => (
-                                        <div
+                                        <button
                                             key={h}
-                                            className="group/item flex items-center gap-1 pl-3 pr-1.5 py-1.5 rounded-lg bg-background border border-border/50 text-[10px] font-black text-foreground hover:border-primary/50 transition-all uppercase cursor-pointer"
                                             onClick={() => handleSelect(h)}
+                                            className="px-3 py-1.5 rounded-lg bg-background border border-border/50 text-[10px] font-black text-foreground hover:border-primary/50 hover:text-primary transition-all uppercase"
                                         >
-                                            <span className="group-hover/item:text-primary">{h}</span>
-                                            <button
-                                                onClick={(e) => handleRemove(e, h)}
-                                                className="p-0.5 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors opacity-40 group-hover/item:opacity-100"
-                                            >
-                                                <X className="h-2.5 w-2.5" />
-                                            </button>
-                                        </div>
+                                            {h}
+                                        </button>
                                     ))}
                                 </div>
                             </div>

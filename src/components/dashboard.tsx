@@ -193,7 +193,6 @@ export function Dashboard() {
             onSelect={handleSearchSelect}
             history={searchHistory}
             onClearHistory={clearHistory}
-            onRemoveHistoryItem={removeHistoryItem}
           />
         </div>
 
